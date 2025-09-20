@@ -1,1 +1,15 @@
-
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FAES</title>
+  <link rel="icon" href="res/icon.png">
+  <style>
+    body { background-color: #111; color: #0f0; font-family: monospace; text-align: center; }
+    h1 { margin-top: 50px; }
+  </style>
+</head>
+<body>
+  <h1>Este es un título de prueba.</h1>
+  <p>Esta página aún no está completa.</p>
+</body>
+</html>
