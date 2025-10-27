@@ -1,2 +1,0 @@
-If you are looking for Windows .iso files, go to this page: https://dl.malwarewatch.org/windows/
-If you want to run a virtual computer inside your physical computer, go to this page: https://www.virtualbox.org/wiki/Downloads
