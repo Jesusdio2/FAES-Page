@@ -1,4 +1,4 @@
-public class Overflowtest {
+public class overflowtest {
     public static void main(String[] args) {
         int x = Integer.MAX_VALUE; // 2_147_483_647
 
