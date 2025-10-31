@@ -19,7 +19,7 @@ jobs:
         java-version: '17'
 
     - name: Compile Java
-      run: javac OverflowTest.java
+      run: javac overflowtest.java
 
     - name: Run Java
-      run: java OverflowTest
+      run: java overflowtest
