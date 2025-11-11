@@ -1,2 +1,2 @@
 FROM ghcr.io/techarohq/anubis:latest
-EXPOSE 3000
+EXPOSE 9090
