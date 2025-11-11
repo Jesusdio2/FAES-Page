@@ -9,7 +9,7 @@ app.get("/api/ritual", (req, res) => {
 // Servir tu FAES.html si lo subes al contenedor
 app.use(express.static(__dirname));
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 9090;
 app.listen(PORT, () => {
   console.log(`Servidor FAES escuchando en puerto ${PORT}`);
 });
