@@ -1,0 +1,5 @@
+decaymap:
+  - path: /api/anubis
+    allow: true
+  - path: /
+    allow: true
