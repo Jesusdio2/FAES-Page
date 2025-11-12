@@ -1,7 +1,7 @@
-app = "faes-page"
+app = "faes-anubis"
 
 [build]
-dockerfile = "Dockerfile"
+image = "ghcr.io/techarohq/anubis:latest"
 
 [http_service]
 internal_port = 9090
