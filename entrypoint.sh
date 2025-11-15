@@ -1,5 +1,5 @@
 #!/bin/sh
 
-/usr/local/bin/anubis --config /etc/anubis/decaymap.yaml &
+/usr/local/bin/anubis --config /etc/anubis/decaymap.yaml --port 9090 &
 
 nginx -g "daemon off;"
