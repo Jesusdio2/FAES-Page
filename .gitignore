@@ -2,3 +2,4 @@ decaymap.yaml
 anubis
 server.js
 dockerfile
+entrypoint.sh
