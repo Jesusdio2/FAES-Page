@@ -1,7 +1,7 @@
 bots:
   - name: faes-bot
     user_agent_regex: ".*curl.*"
-    action: deny
+    action: DENY
     decay: 0.5
     max_requests: 100
     window: 60s
