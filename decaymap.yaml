@@ -1,3 +1,9 @@
+bots:
+  - name: faes-bot
+    decay: 0.5
+    max_requests: 100
+    window: 60s
+
 decaymap:
   - path: /api/anubis
     allow: true
