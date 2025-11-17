@@ -3,7 +3,6 @@ FROM nginx:alpine
 # Instalar dependencias necesarias
 RUN apk add --no-cache bash curl tar
 
-# Crear carpeta para Anubis
 RUN mkdir -p /etc/anubis
 
 # Copiar configuraciones
@@ -12,7 +11,6 @@ COPY decaymap.yaml /etc/anubis/decaymap.yaml
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Descargar y extraer binario de Anubis
 RUN curl -L https://github.com/TecharoHQ/anubis/releases/download/v1.23.1/anubis-1.23.1-linux-amd64.tar.gz \
     -o /tmp/anubis.tar.gz && \
     tar -xzf /tmp/anubis.tar.gz -C /tmp && \
