@@ -5,9 +5,3 @@ bots:
     decay: 0.5
     max_requests: 100
     window: 60s
-
-decaymap:
-  - path: /
-    allow: true
-    action: static
-    body: "Bienvenido al altar FAES"
