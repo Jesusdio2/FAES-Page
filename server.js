@@ -7,7 +7,7 @@ app.get("/api/ritual", (req, res) => {
 
 app.use(express.static(__dirname));
 
-const PORT = process.env.PORT || 9090;
+const PORT = 9090; // puerto interno
 app.listen(PORT, () => {
   console.log(`Servidor FAES escuchando en puerto ${PORT}`);
 });
