@@ -9,5 +9,7 @@ bots:
 decaymap:
   - path: /api/anubis
     allow: true
+  - path: /anubis-check
+    allow: true
   - path: /
     allow: true
