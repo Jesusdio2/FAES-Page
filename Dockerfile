@@ -4,8 +4,6 @@ RUN apk add --no-cache bash curl tar nginx
 
 # Copiar Express
 WORKDIR /app
-COPY package.json server.js ./
-RUN npm install
 
 # Copiar configs
 COPY nginx.conf /etc/nginx/nginx.conf
