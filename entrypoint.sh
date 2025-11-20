@@ -10,6 +10,11 @@ echo ">>> Lanzando Anubis en background..."
 ANUBIS_PID=$!
 echo ">>> Anubis arrancado con PID $ANUBIS_PID"
 
+echo ">>> Lanzando Express en background..."
+node /app/server.js &
+EXPRESS_PID=$!
+echo ">>> Express arrancado con PID $EXPRESS_PID"
+
 echo ">>> Validando configuración de Nginx..."
 nginx -t -c /etc/nginx/nginx.conf || exit 1
 
