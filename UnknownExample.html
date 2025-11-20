@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Portal FAES</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      text-align: center;
+      padding: 50px;
+    }
+    #portal {
+      margin-top: 20px;
+      padding: 15px;
+      border: 2px solid #44ff88;
+      display: inline-block;
+      background: #222;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌌 Portal FAES</h1>
+  <p>Invocando al guardián Anubis desde Fly.io…</p>
+
+  <div id="portal">Esperando respuesta...</div>
+
+  <script>
+    // Llamada al API dinámico en Fly.io
+    fetch("https://faes-page.fly.dev/api/ritual")
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById("portal").innerText = data.message;
+      })
+      .catch(error => {
+        document.getElementById("portal").innerText = "⚠️ Error al invocar Anubis";
+        console.error(error);
+      });
+  </script>
+</body>
+</html>
