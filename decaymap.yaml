@@ -1,15 +1,15 @@
-bots:
-  - name: faes-bot
-    user_agent_regex: ".*curl.*"
-    action: DENY
-    decay: 0.5
-    max_requests: 100
-    window: 60s
-
 decaymap:
   - path: /api/anubis
     allow: true
+    action: static
+    body: "Respuesta directa de Anubis en /api/anubis"
+
   - path: /anubis-check
     allow: true
+    action: static
+    body: "Anubis está vivo y respondiendo"
+
   - path: /
     allow: true
+    action: static
+    body: "Bienvenido al altar FAES (Anubis)"
