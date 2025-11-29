@@ -4,11 +4,13 @@ body {
   font-family: monospace;
   text-align: center;
   margin: 0;
+  text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
 }
 
 nav.menu-container {
   background-color: #2e2e2e;
   padding: 10px 0;
+  border-bottom: 2px solid #0f0;
 }
 
 ul.menu-row {
@@ -24,12 +26,37 @@ ul.menu-row li a {
   color: #0f0;
   text-decoration: none;
   font-weight: bold;
+  transition: color 0.3s ease;
 }
 
 ul.menu-row li a:hover {
   text-decoration: underline;
+  color: #0ff;
 }
 
 h1 {
   margin-top: 50px;
+}
+
+section {
+  margin: 40px auto;
+  max-width: 800px;
+  background-color: #1a1a1a;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #0f0;
+}
+
+footer {
+  margin-top: 50px;
+  padding: 20px;
+  background-color: #2e2e2e;
+  border-top: 2px solid #0f0;
+}
+
+@media (max-width: 600px) {
+  ul.menu-row {
+    flex-direction: column;
+    gap: 15px;
+  }
 }
