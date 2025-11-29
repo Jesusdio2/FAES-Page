@@ -1,76 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sitio oficial de FAES">
   <title>FAES</title>
-  <link rel="icon" href="icon.png">
-  <style>
-    body {
-      background-color: #111;
-      color: #0f0;
-      font-family: monospace;
-      text-align: center;
-      margin: 0;
-    }
-
-    nav.menu-container {
-      background-color: #2e2e2e;
-      padding: 10px 0;
-    }
-
-    ul.menu-row {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-    }
-
-    ul.menu-row li a {
-      color: #0f0;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    ul.menu-row li a:hover {
-      text-decoration: underline;
-    }
-
-    h1 {
-      margin-top: 50px;
-    }
-
-    .notice {
-      margin-top: 40px;
-      font-size: 18px;
-      color: #ff0;
-    }
-
-    .notice a {
-      color: #0ff;
-      text-decoration: underline;
-    }
-  </style>
+  <link rel="icon" href="res/icon.png">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header>
+    <nav class="menu-container">
+      <ul class="menu-row">
+        <li><a href="https://www.youtube.com/@FAESWSPVZ191" target="_blank">YouTube</a></li>
+        <li><a href="https://x.com/FAESWSPVZ191" target="_blank">X</a></li>
+      </ul>
+    </nav>
+  </header>
 
-  <nav class="menu-container">
-    <ul class="menu-row">
-      <li><a href="https://www.youtube.com/@FAESWSPVZ191" target="_blank">YouTube</a></li>
-      <li><a href="https://x.com/FAESWSPVZ191" target="_blank">X</a></li>
-    </ul>
-  </nav>
+  <main>
+    <h1>Bienvenido a FAES</h1>
+    <p>Este sitio está en construcción.</p>
 
-  <h1>FAES</h1>
-  <p class="notice">
-    ⚠️ Esta página ha cambiado de lugar.<br>
-    Ahora puedes encontrarla en:<br>
-    <a href="https://jesusdio2.github.io/FAES-Page/" target="_blank">
-      jesusdio2.github.io/FAES-Page/
-    </a>
-  </p>
+    <section>
+      <h2>Usuarios registrados</h2>
+      <div id="data-container">Cargando...</div>
+    </section>
+  </main>
 
+  <footer>
+    <p>&copy; CHANGE THIS TEXT UPON RECEIVING THE INFORMATION.</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>
-
-
