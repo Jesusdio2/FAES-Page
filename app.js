@@ -1,29 +1,14 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
 
+// Usa tu URL y la nueva publishable key
 const supabaseUrl = "https://neswgqikcsxspwdrxqdj.supabase.co"
 const supabaseKey = "sb_publishable_nfU_SI8z2NhLMVevbEF0Rw_AsnoSTK4"
 
-// Inicializa Supabase con opciones seguras
-let supabase = null
-try {
-  supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: {
-      storage: window.sessionStorage,   // usa sessionStorage
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  })
-} catch (err) {
-  console.error("Error inicializando Supabase:", err)
-}
+// Inicializa Supabase sin configuración de auth
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function cargarUsuarios() {
   const container = document.getElementById("data-container")
-
-  if (!supabase) {
-    container.innerText = "Error: Supabase no se inicializó correctamente."
-    return
-  }
 
   try {
     const { data, error } = await supabase
