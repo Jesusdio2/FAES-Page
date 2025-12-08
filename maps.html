@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mapa con Google Maps API</title>
+  <style> /* PlaceHolder File */
+    /* El mapa necesita un tamaño definido */
+    #map {
+      height: 100vh;   /* ocupa toda la ventana */
+      width: 100%;     /* ancho completo */
+    }
+  </style>
+</head>
+<body>
+  <h1>Mi Mapa</h1>
+  <div id="map"></div>
+
+  <!-- Script de Google Maps -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY&callback=initMap"
+    async defer>
+  </script>
+
+  <script>
+    // Función de inicialización del mapa
+    function initMap() {
+      // Coordenadas de ejemplo: Hermosillo, Sonora
+      const hermosillo = { lat: 29.072967, lng: -110.955919 };
+
+      // Crear el mapa centrado en Hermosillo
+      const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 12,
+        center: hermosillo,
+      });
+
+      // Añadir un marcador
+      new google.maps.Marker({
+        position: hermosillo,
+        map: map,
+        title: "Hermosillo, Sonora",
+      });
+    }
+  </script>
+</body>
+</html>
