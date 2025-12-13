@@ -11,19 +11,20 @@
   <link rel="stylesheet" href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.19.0/maps/maps.css">
 </head>
 <body>
+  <h1>Mapa con TomTom</h1>
   <div id="map"></div>
 
   <script>
-    tt.setProductInfo('MiApp', '1.0'); // Identificación de tu app
+    tt.setProductInfo('Maps', '1.0'); // Identificación de tu app
     var map = tt.map({
-      key: '1HphnhTyk59QJYgW5KodzHy6j0Iawvvc',
+      key: '1HphnhTyk59QJYgW5KodzHy6j0Iawvvc', // reemplaza con tu clave real
       container: 'map',
       center: [ -110.9559, 29.0729 ], // Hermosillo, Sonora
       zoom: 12
     });
 
     // Agregar un marcador
-    var marker = new tt.Marker().setLngLat([ -110.9559, 29.0729 ]).addTo(map);
+    new tt.Marker().setLngLat([ -110.9559, 29.0729 ]).addTo(map);
   </script>
 </body>
 </html>
