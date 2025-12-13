@@ -1,45 +1,29 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Mapa con Google Maps API</title>
+  <meta charset="utf-8">
+  <title>Mapa TomTom</title>
   <style>
-    /* El mapa necesita un tamaño definido */
-    #map {
-      height: 100vh;   /* ocupa toda la ventana */
-      width: 100%;     /* ancho completo */
-    }
+    #map { width: 100%; height: 500px; }
   </style>
+  <!-- SDK de TomTom -->
+  <script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.19.0/maps/maps-web.min.js"></script>
+  <link rel="stylesheet" href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.19.0/maps/maps.css">
 </head>
 <body>
-  <h1>Mi Mapa</h1>
   <div id="map"></div>
 
-  <!-- Script de Google Maps -->
-  <script
-    src="https://maps.googleapis.com/maps/api/js?key=AQ.Ab8RN6IOl5cyQ_iJSoTkkKGBUCb82aOlMmVK8yY7Mm3c9yeRuA&callback=initMap"
-    async defer>
-  </script>
-
   <script>
-    // Función de inicialización del mapa
-    function initMap() {
-      // Coordenadas de ejemplo: Hermosillo, Sonora
-      const hermosillo = { lat: 29.072967, lng: -110.955919 };
+    tt.setProductInfo('MiApp', '1.0'); // Identificación de tu app
+    var map = tt.map({
+      key: '1HphnhTyk59QJYgW5KodzHy6j0Iawvvc',
+      container: 'map',
+      center: [ -110.9559, 29.0729 ], // Hermosillo, Sonora
+      zoom: 12
+    });
 
-      // Crear el mapa centrado en Hermosillo
-      const map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 12,
-        center: hermosillo,
-      });
-
-      // Añadir un marcador
-      new google.maps.Marker({
-        position: hermosillo,
-        map: map,
-        title: "Hermosillo, Sonora",
-      });
-    }
+    // Agregar un marcador
+    var marker = new tt.Marker().setLngLat([ -110.9559, 29.0729 ]).addTo(map);
   </script>
 </body>
 </html>
