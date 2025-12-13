@@ -1,3 +1,4 @@
+# Nginx Para Linux Alpine
 FROM nginx:alpine
 
 COPY nginx.conf /etc/nginx/nginx.conf
