@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>FAES - Wii</title>
+  <style>
+    /* Estructura base sin Flexbox */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #111;
+      color: #0f0;
+      font-family: monospace;
+      text-align: center;
+    }
+
+    body {
+      text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+    }
+
+    header {
+      background-color: #2e2e2e;
+      border-bottom: 2px solid #0f0;
+      padding: 10px 0;
+    }
+
+    nav.menu-container ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav.menu-container ul li {
+      display: inline-block; /* Wii-friendly */
+      margin: 0 15px;
+    }
+
+    nav.menu-container ul li a {
+      color: #0f0;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav.menu-container ul li a:hover {
+      text-decoration: underline;
+      color: #0ff;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    h1 {
+      margin-top: 30px;
+    }
+
+    section {
+      margin: 20px auto;
+      width: 90%; /* en lugar de max-width */
+      background-color: #1a1a1a;
+      padding: 15px;
+      border: 1px solid #0f0;
+    }
+
+    footer {
+      padding: 15px;
+      background-color: #2e2e2e;
+      border-top: 2px solid #0f0;
+      position: relative;
+      bottom: 0;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="menu-container">
+      <ul class="menu-row">
+        <li><a href="https://www.youtube.com/@FAESWSPVZ191">YouTube</a></li>
+        <li><a href="https://x.com/FAESWSPVZ191">X</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Bienvenido a FAES (Wii)</h1>
+    <p>Este sitio está en construcción.</p>
+
+    <section>
+      <h2>Usuarios registrados</h2>
+      <div id="data-container">Cargando...</div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Francisco — Proyecto bajo Licencia MIT.</p>
+  </footer>
+
+  <script>
+    // JS básico compatible con Wii
+    window.onload = function() {
+      var container = document.getElementById("data-container");
+      container.innerHTML = "Lista de usuarios no disponible en Wii.";
+    };
+  </script>
+</body>
+</html>
