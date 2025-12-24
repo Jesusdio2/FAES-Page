@@ -12,6 +12,7 @@ body {
   font-family: monospace;
   text-align: center;
   text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+  font-size: 18px;
 }
 
 /* El main se expande y empuja el footer hacia abajo */
@@ -51,15 +52,17 @@ ul.menu-row li a:hover {
 /* Contenido */
 h1 {
   margin-top: 50px;
+  font-size: 2em;
 }
 
 section {
   margin: 40px auto;
-  max-width: 800px;
+  max-width: 1200px;
   background-color: #1a1a1a;
   padding: 20px;
   border-radius: 8px;
   border: 1px solid #0f0;
+  animation: neon-glow 2s infinite alternate;
 }
 
 /* Layout para video + chat */
@@ -68,13 +71,13 @@ section {
   gap: 20px;
   align-items: flex-start;
   justify-content: center;
-  flex-wrap: wrap; /* en móviles se acomoda en columna */
+  flex-wrap: wrap;
 }
 
 .video-box {
-  flex: 2;
+  flex: 3;
   position: relative;
-  padding-top: 56.25%; /* proporción 16:9 */
+  padding-top: 56.25%;
   height: 0;
   overflow: hidden;
   border: 2px solid #0f0;
@@ -90,7 +93,7 @@ section {
 }
 
 .chat-box {
-  flex: 1;
+  flex: 2;
   min-width: 300px;
   height: 500px;
   position: relative;
@@ -129,7 +132,7 @@ footer {
     flex-direction: column;
   }
   .chat-box {
-    height: 400px; /* ajusta altura en móviles */
+    height: 400px;
   }
 }
 
