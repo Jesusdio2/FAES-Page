@@ -1,0 +1,36 @@
+body {
+  background-color: #000;
+  color: #0f0;
+  font-family: monospace;
+  font-size: 20px;
+  text-align: center;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+nav a {
+  color: #0f0;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+section {
+  margin: 20px auto;
+  max-width: 90%;
+  padding: 15px;
+  border: 1px solid #0f0;
+  border-radius: 6px;
+  background-color: #111;
+}
+
+footer {
+  margin-top: 40px;
+  padding: 10px;
+  border-top: 1px solid #0f0;
+}
