@@ -6,12 +6,12 @@
 </head>
 <body>
   <div id="controls">
-    <button onclick="camera.position.z -= 0.2">Avanzar</button>
-    <button onclick="camera.position.z += 0.2">Retroceder</button>
-    <button onclick="camera.position.x -= 0.2">Izquierda</button>
-    <button onclick="camera.position.x += 0.2">Derecha</button>
-    <button onclick="camera.position.y += 0.2">Subir</button>
-    <button onclick="camera.position.y -= 0.2">Bajar</button>
+    <button data-action="forward">Avanzar</button>
+    <button data-action="back">Retroceder</button>
+    <button data-action="left">Izquierda</button>
+    <button data-action="right">Derecha</button>
+    <button data-action="up">Subir</button>
+    <button data-action="down">Bajar</button>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
