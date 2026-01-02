@@ -125,6 +125,16 @@ const keys = {};
 document.addEventListener('keydown', e => keys[e.code] = true);
 document.addEventListener('keyup', e => keys[e.code] = false);
 
+// --- Variables para tarear ---
+let tareX = 0, tareY = 0, tareZ = 0;
+let tareDone = false;
+
+// Función para recalibrar
+function recalibrar() {
+  tareDone = false;
+  console.log("Recalibración solicitada");
+}
+
 // Controles móviles
 if (isMobileDevice()) {
   document.getElementById('controls').style.display = 'block';
@@ -159,13 +169,27 @@ if (isMobileDevice()) {
     camera.rotation.z = radAlpha * 0.1;
   });
 
-  // Acelerómetro: mover la cámara con el celular
+  // Acelerómetro con tareo
   window.addEventListener("devicemotion", (event) => {
     const acc = event.accelerationIncludingGravity;
     if (acc) {
-      camera.position.x += acc.x * 0.05;   // izquierda/derecha
-      camera.position.y += acc.y * 0.05;   // arriba/abajo
-      camera.position.z += acc.z * 0.05;   // adelante/atrás
+      if (!tareDone) {
+        // Guardar valores iniciales como referencia
+        tareX = acc.x;
+        tareY = acc.y;
+        tareZ = acc.z;
+        tareDone = true;
+        console.log("Tareo inicial:", tareX, tareY, tareZ);
+      }
+
+      // Usar valores relativos
+      const relX = acc.x - tareX;
+      const relY = acc.y - tareY;
+      const relZ = acc.z - tareZ;
+
+      camera.position.x += relX * 0.05;
+      camera.position.y += relY * 0.05;
+      camera.position.z += relZ * 0.05;
     }
   });
 }
