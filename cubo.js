@@ -6,37 +6,35 @@ function isMobileDevice() {
 // Escena, cámara y renderizador
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Fondo estrellado
-scene.background = new THREE.TextureLoader().load('stars.jpg'); // Usa una imagen de estrellas
+// Fondo estrellado (asegúrate de tener stars.jpg)
+scene.background = new THREE.TextureLoader().load('stars.jpg');
 
 // Luces
-const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
-scene.add(ambientLight);
-
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(5, 10, 7.5);
-scene.add(directionalLight);
-
+scene.add(new THREE.AmbientLight(0x404040, 1.5));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+dirLight.position.set(5, 10, 7.5);
+scene.add(dirLight);
 const pointLight = new THREE.PointLight(0xffaa00, 1, 100);
 pointLight.position.set(-5, -5, -5);
 scene.add(pointLight);
 
 // Cubo de referencia
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshStandardMaterial({ color: 0x00ff00, wireframe: true });
-const cube = new THREE.Mesh(geometry, material);
+const cube = new THREE.Mesh(
+  new THREE.BoxGeometry(),
+  new THREE.MeshStandardMaterial({ color: 0x00ff00, wireframe: true })
+);
 scene.add(cube);
 
 // Círculo XY
 const circleXY = new THREE.LineLoop(
   new THREE.BufferGeometry().setFromPoints(
-    Array.from({length:100}, (_,i)=>{
-      const angle = (i/100)*Math.PI*2;
-      return new THREE.Vector3(Math.cos(angle), Math.sin(angle), 0);
+    Array.from({ length: 100 }, (_, i) => {
+      const a = (i / 100) * Math.PI * 2;
+      return new THREE.Vector3(Math.cos(a), Math.sin(a), 0);
     })
   ),
   new THREE.LineBasicMaterial({ color: 0xff0000 })
@@ -46,9 +44,9 @@ scene.add(circleXY);
 // Círculo XZ
 const circleXZ = new THREE.LineLoop(
   new THREE.BufferGeometry().setFromPoints(
-    Array.from({length:100}, (_,i)=>{
-      const angle = (i/100)*Math.PI*2;
-      return new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+    Array.from({ length: 100 }, (_, i) => {
+      const a = (i / 100) * Math.PI * 2;
+      return new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
     })
   ),
   new THREE.LineBasicMaterial({ color: 0x0000ff })
@@ -58,147 +56,118 @@ scene.add(circleXZ);
 // Hipercubo 4D
 function hypercubeVertices() {
   const verts = [];
-  for (let x of [-1,1]) {
-    for (let y of [-1,1]) {
-      for (let z of [-1,1]) {
-        for (let w of [-1,1]) {
-          verts.push({x,y,z,w});
-        }
-      }
-    }
-  }
+  for (let x of [-1, 1]) for (let y of [-1, 1]) for (let z of [-1, 1]) for (let w of [-1, 1]) verts.push({ x, y, z, w });
   return verts;
 }
-
 function project4Dto3D(v) {
   const factor = 1 / (2 - v.w);
   return new THREE.Vector3(v.x * factor, v.y * factor, v.z * factor);
 }
-
 const verts4D = hypercubeVertices();
 const edges = [];
-for (let i=0; i<verts4D.length; i++) {
-  for (let j=i+1; j<verts4D.length; j++) {
-    const diff = 
+for (let i = 0; i < verts4D.length; i++) {
+  for (let j = i + 1; j < verts4D.length; j++) {
+    const diff =
       (verts4D[i].x !== verts4D[j].x) +
       (verts4D[i].y !== verts4D[j].y) +
       (verts4D[i].z !== verts4D[j].z) +
       (verts4D[i].w !== verts4D[j].w);
-    if (diff === 1) edges.push([i,j]);
+    if (diff === 1) edges.push([i, j]);
   }
 }
-
 const hypercubeLines = new THREE.Group();
-edges.forEach(([i,j])=>{
+edges.forEach(([i, j]) => {
   const lineGeom = new THREE.BufferGeometry().setFromPoints([project4Dto3D(verts4D[i]), project4Dto3D(verts4D[j])]);
-  const line = new THREE.Line(lineGeom, new THREE.LineBasicMaterial({color:0xffff00}));
+  const line = new THREE.Line(lineGeom, new THREE.LineBasicMaterial({ color: 0xffff00 }));
   hypercubeLines.add(line);
 });
 scene.add(hypercubeLines);
-
 let angle = 0;
 function rotate4D(v, a) {
-  const cos = Math.cos(a);
-  const sin = Math.sin(a);
-  let x = v.x * cos - v.w * sin;
-  let w = v.x * sin + v.w * cos;
-  let y = v.y * cos - v.z * sin;
-  let z = v.y * sin + v.z * cos;
-  return {x, y, z, w};
+  const cos = Math.cos(a), sin = Math.sin(a);
+  const x = v.x * cos - v.w * sin;
+  const w = v.x * sin + v.w * cos;
+  const y = v.y * cos - v.z * sin;
+  const z = v.y * sin + v.z * cos;
+  return { x, y, z, w };
 }
-
 function updateHypercube() {
   angle += 0.01;
-  const rotatedVerts = verts4D.map(v => rotate4D(v, angle));
-  const projectedVerts = rotatedVerts.map(project4Dto3D);
+  const projectedVerts = verts4D.map(v => project4Dto3D(rotate4D(v, angle)));
   hypercubeLines.children.forEach((line, idx) => {
-    const [i,j] = edges[idx];
+    const [i, j] = edges[idx];
     line.geometry.setFromPoints([projectedVerts[i], projectedVerts[j]]);
   });
 }
 
 // Cámara inicial
-camera.position.z = 5;
+camera.position.set(0, 0, 5);
 
 // Controles PC (teclado)
 const keys = {};
-document.addEventListener('keydown', e => keys[e.code] = true);
-document.addEventListener('keyup', e => keys[e.code] = false);
+document.addEventListener('keydown', e => (keys[e.code] = true));
+document.addEventListener('keyup', e => (keys[e.code] = false));
 
-// --- Variables para tarear ---
-let tareX = 0, tareY = 0, tareZ = 0;
-let tareDone = false;
+// Giroscopio (solo rotación)
+function enableGyroIfNeeded() {
+  if (!isMobileDevice()) return;
 
-// Función para recalibrar
-function recalibrar() {
-  tareDone = false;
-  console.log("Recalibración solicitada");
+  // iOS requiere permiso explícito tras un gesto del usuario
+  const needsPermission = typeof DeviceOrientationEvent !== 'undefined' &&
+    typeof DeviceOrientationEvent.requestPermission === 'function';
+
+  if (needsPermission) {
+    // Crea un botón temporal para pedir permiso
+    const btn = document.createElement('button');
+    btn.textContent = 'Activar giroscopio';
+    btn.style.position = 'fixed';
+    btn.style.top = '10px';
+    btn.style.right = '10px';
+    btn.style.zIndex = '1000';
+    btn.style.padding = '10px';
+    document.body.appendChild(btn);
+
+    btn.addEventListener('click', () => {
+      DeviceOrientationEvent.requestPermission().then(state => {
+        if (state === 'granted') {
+          attachDeviceOrientation();
+          btn.remove();
+        } else {
+          btn.textContent = 'Permiso denegado';
+        }
+      }).catch(() => {
+        btn.textContent = 'Error permiso';
+      });
+    });
+  } else {
+    // Android / navegadores que no requieren permiso
+    attachDeviceOrientation();
+  }
 }
 
-// Controles móviles
-if (isMobileDevice()) {
-  document.getElementById('controls').style.display = 'block';
+function attachDeviceOrientation() {
+  window.addEventListener('deviceorientation', (event) => {
+    const beta = event.beta || 0;   // inclinación adelante/atrás
+    const gamma = event.gamma || 0; // inclinación izquierda/derecha
+    const alpha = event.alpha || 0; // giro vertical
 
-  // Gestos táctiles
-  let touchStartX = 0, touchStartY = 0;
-  document.addEventListener('touchstart', e => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-  });
-  document.addEventListener('touchmove', e => {
-    const deltaX = e.touches[0].clientX - touchStartX;
-    const deltaY = e.touches[0].clientY - touchStartY;
-    camera.position.x -= deltaX * 0.005;
-    camera.position.y += deltaY * 0.005;
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-  });
+    // Suavizado básico para evitar vibración
+    const k = 0.5;
+    const rx = THREE.MathUtils.degToRad(beta) * k;
+    const ry = THREE.MathUtils.degToRad(gamma) * k;
+    const rz = THREE.MathUtils.degToRad(alpha) * 0.1;
 
-  // Giroscopio: rotación de cámara
-  window.addEventListener("deviceorientation", (event) => {
-    const beta = event.beta;
-    const gamma = event.gamma;
-    const alpha = event.alpha;
-
-    const radBeta = THREE.MathUtils.degToRad(beta || 0);
-    const radGamma = THREE.MathUtils.degToRad(gamma || 0);
-    const radAlpha = THREE.MathUtils.degToRad(alpha || 0);
-
-    camera.rotation.x = radBeta * 0.5;
-    camera.rotation.y = radGamma * 0.5;
-    camera.rotation.z = radAlpha * 0.1;
-  });
-
-  // Acelerómetro con tareo
-  window.addEventListener("devicemotion", (event) => {
-    const acc = event.accelerationIncludingGravity;
-    if (acc) {
-      if (!tareDone) {
-        // Guardar valores iniciales como referencia
-        tareX = acc.x;
-        tareY = acc.y;
-        tareZ = acc.z;
-        tareDone = true;
-        console.log("Tareo inicial:", tareX, tareY, tareZ);
-      }
-
-      // Usar valores relativos
-      const relX = acc.x - tareX;
-      const relY = acc.y - tareY;
-      const relZ = acc.z - tareZ;
-
-      camera.position.x += relX * 0.05;
-      camera.position.y += relY * 0.05;
-      camera.position.z += relZ * 0.05;
-    }
+    camera.rotation.set(rx, ry, rz);
   });
 }
+
+enableGyroIfNeeded();
 
 function animate() {
   requestAnimationFrame(animate);
   updateHypercube();
 
-  // Movimiento PC
+  // Movimiento PC (solo posición con teclado)
   if (keys['KeyW']) camera.position.z -= 0.05;
   if (keys['KeyS']) camera.position.z += 0.05;
   if (keys['KeyA']) camera.position.x -= 0.05;
@@ -209,3 +178,10 @@ function animate() {
   renderer.render(scene, camera);
 }
 animate();
+
+// Ajuste en cambio de tamaño
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
