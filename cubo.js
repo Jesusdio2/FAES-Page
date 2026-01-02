@@ -146,9 +146,9 @@ if (isMobileDevice()) {
 
   // Giroscopio: rotación de cámara
   window.addEventListener("deviceorientation", (event) => {
-    const beta = event.beta;   // inclinación adelante/atrás
-    const gamma = event.gamma; // inclinación izquierda/derecha
-    const alpha = event.alpha; // rotación vertical
+    const beta = event.beta;
+    const gamma = event.gamma;
+    const alpha = event.alpha;
 
     const radBeta = THREE.MathUtils.degToRad(beta || 0);
     const radGamma = THREE.MathUtils.degToRad(gamma || 0);
@@ -157,6 +157,16 @@ if (isMobileDevice()) {
     camera.rotation.x = radBeta * 0.5;
     camera.rotation.y = radGamma * 0.5;
     camera.rotation.z = radAlpha * 0.1;
+  });
+
+  // Acelerómetro: mover la cámara con el celular
+  window.addEventListener("devicemotion", (event) => {
+    const acc = event.accelerationIncludingGravity;
+    if (acc) {
+      camera.position.x += acc.x * 0.05;   // izquierda/derecha
+      camera.position.y += acc.y * 0.05;   // arriba/abajo
+      camera.position.z += acc.z * 0.05;   // adelante/atrás
+    }
   });
 }
 
