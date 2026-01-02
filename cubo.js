@@ -1,16 +1,21 @@
-// Detectar si es móvil
+// Configuración de sensibilidad
+const MOVE_STEP = 0.6;      // mayor movimiento por click/tap (ajústalo a tu gusto)
+const KEY_STEP = 0.08;      // paso por frame con teclado
+const GYRO_GAIN_XY = 0.5;   // ganancia de rotación para beta/gamma
+const GYRO_GAIN_Z = 0.1;    // ganancia de rotación para alpha
+
 function isMobileDevice() {
   return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
 // Escena, cámara y renderizador
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Fondo estrellado (asegúrate de tener stars.jpg)
+// Fondo estrellado (asegúrate de tener stars.jpg en la carpeta)
 scene.background = new THREE.TextureLoader().load('stars.jpg');
 
 // Luces
@@ -82,6 +87,7 @@ edges.forEach(([i, j]) => {
   hypercubeLines.add(line);
 });
 scene.add(hypercubeLines);
+
 let angle = 0;
 function rotate4D(v, a) {
   const cos = Math.cos(a), sin = Math.sin(a);
@@ -103,28 +109,83 @@ function updateHypercube() {
 // Cámara inicial
 camera.position.set(0, 0, 5);
 
-// Controles PC (teclado)
+// Teclado (PC)
 const keys = {};
 document.addEventListener('keydown', e => (keys[e.code] = true));
 document.addEventListener('keyup', e => (keys[e.code] = false));
 
-// Giroscopio (solo rotación)
+// Botones táctiles con paso grande y soporte tap/hold
+const controls = document.getElementById('controls');
+if (controls) {
+  const actions = {
+    forward: () => (camera.position.z -= MOVE_STEP),
+    back:    () => (camera.position.z += MOVE_STEP),
+    left:    () => (camera.position.x -= MOVE_STEP),
+    right:   () => (camera.position.x += MOVE_STEP),
+    up:      () => (camera.position.y += MOVE_STEP),
+    down:    () => (camera.position.y -= MOVE_STEP),
+  };
+
+  let holdTimer = null;
+
+  controls.addEventListener('touchstart', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const action = btn.getAttribute('data-action');
+    if (!actions[action]) return;
+
+    actions[action](); // tap inmediato
+
+    // repetición mientras se mantiene presionado
+    holdTimer = setInterval(actions[action], 80);
+    e.preventDefault();
+  }, { passive: false });
+
+  controls.addEventListener('touchend', () => {
+    if (holdTimer) {
+      clearInterval(holdTimer);
+      holdTimer = null;
+    }
+  });
+
+  // También habilitar con mouse para pruebas en PC
+  controls.addEventListener('mousedown', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const action = btn.getAttribute('data-action');
+    if (!actions[action]) return;
+
+    actions[action]();
+    holdTimer = setInterval(actions[action], 80);
+  });
+  window.addEventListener('mouseup', () => {
+    if (holdTimer) {
+      clearInterval(holdTimer);
+      holdTimer = null;
+    }
+  });
+}
+
+// Giroscopio (rotación solamente)
 function enableGyroIfNeeded() {
   if (!isMobileDevice()) return;
 
-  // iOS requiere permiso explícito tras un gesto del usuario
   const needsPermission = typeof DeviceOrientationEvent !== 'undefined' &&
     typeof DeviceOrientationEvent.requestPermission === 'function';
 
   if (needsPermission) {
-    // Crea un botón temporal para pedir permiso
     const btn = document.createElement('button');
     btn.textContent = 'Activar giroscopio';
     btn.style.position = 'fixed';
-    btn.style.top = '10px';
-    btn.style.right = '10px';
+    btn.style.top = '12px';
+    btn.style.right = '12px';
     btn.style.zIndex = '1000';
-    btn.style.padding = '10px';
+    btn.style.padding = '12px 16px';
+    btn.style.borderRadius = '10px';
+    btn.style.border = '2px solid rgba(255,255,255,0.8)';
+    btn.style.background = 'rgba(255,255,255,0.12)';
+    btn.style.color = '#fff';
+    btn.style.fontWeight = '600';
     document.body.appendChild(btn);
 
     btn.addEventListener('click', () => {
@@ -140,22 +201,19 @@ function enableGyroIfNeeded() {
       });
     });
   } else {
-    // Android / navegadores que no requieren permiso
     attachDeviceOrientation();
   }
 }
 
 function attachDeviceOrientation() {
   window.addEventListener('deviceorientation', (event) => {
-    const beta = event.beta || 0;   // inclinación adelante/atrás
-    const gamma = event.gamma || 0; // inclinación izquierda/derecha
+    const beta = event.beta || 0;   // adelante/atrás
+    const gamma = event.gamma || 0; // izquierda/derecha
     const alpha = event.alpha || 0; // giro vertical
 
-    // Suavizado básico para evitar vibración
-    const k = 0.5;
-    const rx = THREE.MathUtils.degToRad(beta) * k;
-    const ry = THREE.MathUtils.degToRad(gamma) * k;
-    const rz = THREE.MathUtils.degToRad(alpha) * 0.1;
+    const rx = THREE.MathUtils.degToRad(beta) * GYRO_GAIN_XY;
+    const ry = THREE.MathUtils.degToRad(gamma) * GYRO_GAIN_XY;
+    const rz = THREE.MathUtils.degToRad(alpha) * GYRO_GAIN_Z;
 
     camera.rotation.set(rx, ry, rz);
   });
@@ -167,19 +225,19 @@ function animate() {
   requestAnimationFrame(animate);
   updateHypercube();
 
-  // Movimiento PC (solo posición con teclado)
-  if (keys['KeyW']) camera.position.z -= 0.05;
-  if (keys['KeyS']) camera.position.z += 0.05;
-  if (keys['KeyA']) camera.position.x -= 0.05;
-  if (keys['KeyD']) camera.position.x += 0.05;
-  if (keys['Space']) camera.position.y += 0.05;
-  if (keys['ShiftLeft']) camera.position.y -= 0.05;
+  // Movimiento con teclado (PC)
+  if (keys['KeyW']) camera.position.z -= KEY_STEP;
+  if (keys['KeyS']) camera.position.z += KEY_STEP;
+  if (keys['KeyA']) camera.position.x -= KEY_STEP;
+  if (keys['KeyD']) camera.position.x += KEY_STEP;
+  if (keys['Space']) camera.position.y += KEY_STEP;
+  if (keys['ShiftLeft']) camera.position.y -= KEY_STEP;
 
   renderer.render(scene, camera);
 }
 animate();
 
-// Ajuste en cambio de tamaño
+// Resize
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
