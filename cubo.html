@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Cubo 3D Interactivo</title>
+  <title>Cubo + Círculos 3D</title>
   <style>body { margin: 0; }</style>
 </head>
 <body>
@@ -14,13 +14,37 @@
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  // Cubo
+  // Cubo de referencia
   const geometry = new THREE.BoxGeometry();
   const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
   const cube = new THREE.Mesh(geometry, material);
   scene.add(cube);
 
-  // Posición inicial
+  // Círculo acostado (plano XY)
+  const circleXY = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints(
+      Array.from({length:100}, (_,i)=>{
+        const angle = (i/100)*Math.PI*2;
+        return new THREE.Vector3(Math.cos(angle), Math.sin(angle), 0);
+      })
+    ),
+    new THREE.LineBasicMaterial({ color: 0xff0000 })
+  );
+  scene.add(circleXY);
+
+  // Círculo parado (plano XZ)
+  const circleXZ = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints(
+      Array.from({length:100}, (_,i)=>{
+        const angle = (i/100)*Math.PI*2;
+        return new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+      })
+    ),
+    new THREE.LineBasicMaterial({ color: 0x0000ff })
+  );
+  scene.add(circleXZ);
+
+  // Posición inicial de la cámara
   camera.position.z = 5;
 
   // Movimiento con teclas
