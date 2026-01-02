@@ -2,22 +2,45 @@ body {
   margin: 0;
   overflow: hidden;
   background: black;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
+/* Controles táctiles grandes y cómodos */
 #controls {
   position: fixed;
-  bottom: 10px;
-  left: 10px;
-  display: none;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   z-index: 10;
 }
 
 #controls button {
-  margin: 2px;
-  padding: 10px;
-  font-size: 14px;
+  min-width: 140px;
+  min-height: 56px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  backdrop-filter: blur(6px);
+  -webkit-tap-highlight-color: transparent;
+}
+
+#controls button:active {
+  transform: scale(0.98);
   background: rgba(255,255,255,0.2);
-  color: white;
-  border: 1px solid white;
-  border-radius: 5px;
+}
+
+/* En pantallas muy pequeñas, ocupar casi todo el ancho */
+@media (max-width: 420px) {
+  #controls {
+    gap: 10px;
+  }
+  #controls button {
+    min-width: calc(50vw - 30px);
+  }
 }
