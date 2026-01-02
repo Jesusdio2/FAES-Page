@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Cubo + Círculos 3D</title>
+  <title>Hipercubo 4D + Cubo + Círculos</title>
   <style>body { margin: 0; }</style>
 </head>
 <body>
@@ -44,6 +44,79 @@
   );
   scene.add(circleXZ);
 
+  // --- Hipercubo 4D ---
+  function hypercubeVertices() {
+    const verts = [];
+    for (let x of [-1,1]) {
+      for (let y of [-1,1]) {
+        for (let z of [-1,1]) {
+          for (let w of [-1,1]) {
+            verts.push({x,y,z,w});
+          }
+        }
+      }
+    }
+    return verts;
+  }
+
+  function project4Dto3D(v) {
+    const factor = 1 / (2 - v.w); // proyección simple
+    return new THREE.Vector3(v.x * factor, v.y * factor, v.z * factor);
+  }
+
+  const verts4D = hypercubeVertices();
+
+  // --- Aristas del hipercubo ---
+  const edges = [];
+  for (let i=0; i<verts4D.length; i++) {
+    for (let j=i+1; j<verts4D.length; j++) {
+      const diff = 
+        (verts4D[i].x !== verts4D[j].x) +
+        (verts4D[i].y !== verts4D[j].y) +
+        (verts4D[i].z !== verts4D[j].z) +
+        (verts4D[i].w !== verts4D[j].w);
+      if (diff === 1) {
+        edges.push([i,j]);
+      }
+    }
+  }
+
+  const hypercubeLines = new THREE.Group();
+  edges.forEach(([i,j])=>{
+    const lineGeom = new THREE.BufferGeometry().setFromPoints([project4Dto3D(verts4D[i]), project4Dto3D(verts4D[j])]);
+    const line = new THREE.Line(lineGeom, new THREE.LineBasicMaterial({color:0xffff00}));
+    hypercubeLines.add(line);
+  });
+  scene.add(hypercubeLines);
+
+  // Rotación en dos planos (XW y YZ)
+  let angle = 0;
+  function rotate4D(v, a) {
+    const cos = Math.cos(a);
+    const sin = Math.sin(a);
+
+    // Rotación en plano XW
+    let x = v.x * cos - v.w * sin;
+    let w = v.x * sin + v.w * cos;
+
+    // Rotación en plano YZ
+    let y = v.y * cos - v.z * sin;
+    let z = v.y * sin + v.z * cos;
+
+    return {x, y, z, w};
+  }
+
+  function updateHypercube() {
+    angle += 0.01;
+    const rotatedVerts = verts4D.map(v => rotate4D(v, angle));
+    const projectedVerts = rotatedVerts.map(project4Dto3D);
+
+    hypercubeLines.children.forEach((line, idx) => {
+      const [i,j] = edges[idx];
+      line.geometry.setFromPoints([projectedVerts[i], projectedVerts[j]]);
+    });
+  }
+
   // Posición inicial de la cámara
   camera.position.z = 5;
 
@@ -54,6 +127,8 @@
 
   function animate() {
     requestAnimationFrame(animate);
+
+    updateHypercube();
 
     if (keys['KeyW']) camera.position.z -= 0.05;
     if (keys['KeyS']) camera.position.z += 0.05;
