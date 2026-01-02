@@ -2,10 +2,9 @@ body {
   margin: 0;
   overflow: hidden;
   background: black;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
-/* Controles táctiles grandes y cómodos */
 #controls {
   position: fixed;
   left: 50%;
@@ -21,26 +20,14 @@ body {
   min-width: 140px;
   min-height: 56px;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: bold;
   border-radius: 12px;
   border: 2px solid rgba(255,255,255,0.8);
-  background: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.15);
   color: #fff;
-  backdrop-filter: blur(6px);
-  -webkit-tap-highlight-color: transparent;
 }
 
 #controls button:active {
-  transform: scale(0.98);
-  background: rgba(255,255,255,0.2);
-}
-
-/* En pantallas muy pequeñas, ocupar casi todo el ancho */
-@media (max-width: 420px) {
-  #controls {
-    gap: 10px;
-  }
-  #controls button {
-    min-width: calc(50vw - 30px);
-  }
+  transform: scale(0.95);
+  background: rgba(255,255,255,0.25);
 }
