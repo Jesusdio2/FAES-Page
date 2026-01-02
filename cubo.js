@@ -29,7 +29,31 @@ const cube = new THREE.Mesh(
 );
 scene.add(cube);
 
-// Hipercubo 4D (igual que antes)
+// --- Círculo clásico en plano XY ---
+const circleXY = new THREE.LineLoop(
+  new THREE.BufferGeometry().setFromPoints(
+    Array.from({length:100}, (_,i)=>{
+      const angle = (i/100)*Math.PI*2;
+      return new THREE.Vector3(Math.cos(angle), Math.sin(angle), 0);
+    })
+  ),
+  new THREE.LineBasicMaterial({ color: 0xff0000 })
+);
+scene.add(circleXY);
+
+// --- Círculo modificado con i·sin(x) en plano XZ ---
+const circleXZ = new THREE.LineLoop(
+  new THREE.BufferGeometry().setFromPoints(
+    Array.from({length:100}, (_,i)=>{
+      const angle = (i/100)*Math.PI*2;
+      return new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+    })
+  ),
+  new THREE.LineBasicMaterial({ color: 0x0000ff })
+);
+scene.add(circleXZ);
+
+// Hipercubo 4D
 function hypercubeVertices() {
   const verts = [];
   for (let x of [-1,1]) for (let y of [-1,1]) for (let z of [-1,1]) for (let w of [-1,1]) verts.push({x,y,z,w});
