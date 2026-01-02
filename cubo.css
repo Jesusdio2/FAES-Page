@@ -1,0 +1,23 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  background: black;
+}
+
+#controls {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  display: none;
+  z-index: 10;
+}
+
+#controls button {
+  margin: 2px;
+  padding: 10px;
+  font-size: 14px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid white;
+  border-radius: 5px;
+}
