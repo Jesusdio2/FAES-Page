@@ -1,8 +1,7 @@
 // Configuración de sensibilidad
-const MOVE_STEP = 0.6;      // mayor movimiento por click/tap (ajústalo a tu gusto)
-const KEY_STEP = 0.08;      // paso por frame con teclado
-const GYRO_GAIN_XY = 0.5;   // ganancia de rotación para beta/gamma
-const GYRO_GAIN_Z = 0.1;    // ganancia de rotación para alpha
+const MOVE_STEP = 0.6;      // paso para botones
+const KEY_STEP = 0.08;      // paso para teclado
+const ACC_GAIN = 0.05;      // sensibilidad del acelerómetro
 
 function isMobileDevice() {
   return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -15,7 +14,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Fondo estrellado (asegúrate de tener stars.jpg en la carpeta)
+// Fondo estrellado
 scene.background = new THREE.TextureLoader().load('stars.jpg');
 
 // Luces
@@ -34,31 +33,7 @@ const cube = new THREE.Mesh(
 );
 scene.add(cube);
 
-// Círculo XY
-const circleXY = new THREE.LineLoop(
-  new THREE.BufferGeometry().setFromPoints(
-    Array.from({ length: 100 }, (_, i) => {
-      const a = (i / 100) * Math.PI * 2;
-      return new THREE.Vector3(Math.cos(a), Math.sin(a), 0);
-    })
-  ),
-  new THREE.LineBasicMaterial({ color: 0xff0000 })
-);
-scene.add(circleXY);
-
-// Círculo XZ
-const circleXZ = new THREE.LineLoop(
-  new THREE.BufferGeometry().setFromPoints(
-    Array.from({ length: 100 }, (_, i) => {
-      const a = (i / 100) * Math.PI * 2;
-      return new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
-    })
-  ),
-  new THREE.LineBasicMaterial({ color: 0x0000ff })
-);
-scene.add(circleXZ);
-
-// Hipercubo 4D
+// Hipercubo 4D (igual que antes)
 function hypercubeVertices() {
   const verts = [];
   for (let x of [-1, 1]) for (let y of [-1, 1]) for (let z of [-1, 1]) for (let w of [-1, 1]) verts.push({ x, y, z, w });
@@ -114,113 +89,19 @@ const keys = {};
 document.addEventListener('keydown', e => (keys[e.code] = true));
 document.addEventListener('keyup', e => (keys[e.code] = false));
 
-// Botones táctiles con paso grande y soporte tap/hold
-const controls = document.getElementById('controls');
-if (controls) {
-  const actions = {
-    forward: () => (camera.position.z -= MOVE_STEP),
-    back:    () => (camera.position.z += MOVE_STEP),
-    left:    () => (camera.position.x -= MOVE_STEP),
-    right:   () => (camera.position.x += MOVE_STEP),
-    up:      () => (camera.position.y += MOVE_STEP),
-    down:    () => (camera.position.y -= MOVE_STEP),
-  };
-
-  let holdTimer = null;
-
-  controls.addEventListener('touchstart', e => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const action = btn.getAttribute('data-action');
-    if (!actions[action]) return;
-
-    actions[action](); // tap inmediato
-
-    // repetición mientras se mantiene presionado
-    holdTimer = setInterval(actions[action], 80);
-    e.preventDefault();
-  }, { passive: false });
-
-  controls.addEventListener('touchend', () => {
-    if (holdTimer) {
-      clearInterval(holdTimer);
-      holdTimer = null;
-    }
-  });
-
-  // También habilitar con mouse para pruebas en PC
-  controls.addEventListener('mousedown', e => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const action = btn.getAttribute('data-action');
-    if (!actions[action]) return;
-
-    actions[action]();
-    holdTimer = setInterval(actions[action], 80);
-  });
-  window.addEventListener('mouseup', () => {
-    if (holdTimer) {
-      clearInterval(holdTimer);
-      holdTimer = null;
+// --- Acelerómetro: mover cámara en X/Y solamente ---
+if (isMobileDevice()) {
+  window.addEventListener("devicemotion", (event) => {
+    const acc = event.accelerationIncludingGravity;
+    if (acc) {
+      camera.position.x += acc.x * ACC_GAIN;   // izquierda/derecha
+      camera.position.y += acc.y * ACC_GAIN;   // arriba/abajo
+      // ❌ NO modificamos camera.position.z (sin zoom)
     }
   });
 }
 
-// Giroscopio (rotación solamente)
-function enableGyroIfNeeded() {
-  if (!isMobileDevice()) return;
-
-  const needsPermission = typeof DeviceOrientationEvent !== 'undefined' &&
-    typeof DeviceOrientationEvent.requestPermission === 'function';
-
-  if (needsPermission) {
-    const btn = document.createElement('button');
-    btn.textContent = 'Activar giroscopio';
-    btn.style.position = 'fixed';
-    btn.style.top = '12px';
-    btn.style.right = '12px';
-    btn.style.zIndex = '1000';
-    btn.style.padding = '12px 16px';
-    btn.style.borderRadius = '10px';
-    btn.style.border = '2px solid rgba(255,255,255,0.8)';
-    btn.style.background = 'rgba(255,255,255,0.12)';
-    btn.style.color = '#fff';
-    btn.style.fontWeight = '600';
-    document.body.appendChild(btn);
-
-    btn.addEventListener('click', () => {
-      DeviceOrientationEvent.requestPermission().then(state => {
-        if (state === 'granted') {
-          attachDeviceOrientation();
-          btn.remove();
-        } else {
-          btn.textContent = 'Permiso denegado';
-        }
-      }).catch(() => {
-        btn.textContent = 'Error permiso';
-      });
-    });
-  } else {
-    attachDeviceOrientation();
-  }
-}
-
-function attachDeviceOrientation() {
-  window.addEventListener('deviceorientation', (event) => {
-    const beta = event.beta || 0;   // adelante/atrás
-    const gamma = event.gamma || 0; // izquierda/derecha
-    const alpha = event.alpha || 0; // giro vertical
-
-    const rx = THREE.MathUtils.degToRad(beta) * GYRO_GAIN_XY;
-    const ry = THREE.MathUtils.degToRad(gamma) * GYRO_GAIN_XY;
-    const rz = THREE.MathUtils.degToRad(alpha) * GYRO_GAIN_Z;
-
-    camera.rotation.set(rx, ry, rz);
-  });
-}
-
-enableGyroIfNeeded();
-
+// Animación
 function animate() {
   requestAnimationFrame(animate);
   updateHypercube();
