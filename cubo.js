@@ -1,3 +1,7 @@
+<script type="module">
+import * as THREE from 'three';
+import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
+
 const MOVE_STEP = 0.6;   // movimiento por botón
 const KEY_STEP = 0.08;   // movimiento por teclado
 const GYRO_GAIN_XY = 0.5;
@@ -12,6 +16,10 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHei
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+
+// --- Activar VR ---
+renderer.xr.enabled = true;
+document.body.appendChild(VRButton.createButton(renderer));
 
 // Fondo estrellado
 scene.background = new THREE.TextureLoader().load('stars.jpg');
@@ -29,7 +37,7 @@ const cube = new THREE.Mesh(
 );
 scene.add(cube);
 
-// --- Círculo clásico en plano XY ---
+// --- Círculo XY ---
 const circleXY = new THREE.LineLoop(
   new THREE.BufferGeometry().setFromPoints(
     Array.from({length:100}, (_,i)=>{
@@ -41,7 +49,7 @@ const circleXY = new THREE.LineLoop(
 );
 scene.add(circleXY);
 
-// --- Círculo modificado con i·sin(x) en plano XZ ---
+// --- Círculo XZ ---
 const circleXZ = new THREE.LineLoop(
   new THREE.BufferGeometry().setFromPoints(
     Array.from({length:100}, (_,i)=>{
@@ -124,7 +132,7 @@ if(controls){
   });
 }
 
-// Giroscopio: solo rotación
+// Giroscopio
 function enableGyroIfNeeded(){
   if(!isMobileDevice()) return;
   const needsPermission=typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function';
@@ -157,8 +165,8 @@ function attachDeviceOrientation(){
 }
 enableGyroIfNeeded();
 
-function animate(){
-  requestAnimationFrame(animate);
+// --- Animación con WebXR ---
+renderer.setAnimationLoop(()=>{
   updateHypercube();
   if(keys['KeyW']) camera.position.z-=KEY_STEP;
   if(keys['KeyS']) camera.position.z+=KEY_STEP;
@@ -167,11 +175,12 @@ function animate(){
   if(keys['Space']) camera.position.y+=KEY_STEP;
   if(keys['ShiftLeft']) camera.position.y-=KEY_STEP;
   renderer.render(scene,camera);
-}
-animate();
+});
 
+// Resize
 window.addEventListener('resize',()=>{
   camera.aspect=window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth,window.innerHeight);
 });
+</script>
