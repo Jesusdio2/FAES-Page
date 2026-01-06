@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>WebGPU Ray Tracing WASD + Calidad dinámica</title>
+  <style>
+    html, body { margin:0; height:100%; background:#000; }
+    canvas { width:100vw; height:100vh; display:block; }
+    #hud {
+      position:fixed; top:10px; left:10px; color:#0f0; font:12px/1.4 monospace;
+      background:rgba(0,0,0,0.4); padding:8px; border:1px solid #0f0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gfx"></canvas>
+  <div id="hud">WASD: mover | Espacio: subir | Shift: bajar | FPS: <span id="fps">0</span><br>
+  scale:<span id="scale">1.00</span> spp:<span id="spp">4</span> bounces:<span id="bounces">3</span></div>
+
+<script type="module">
+if (!navigator.gpu) {
+  alert("Tu navegador no soporta WebGPU. Usa Chrome 113+ en macOS Big Sur o superior.");
+  throw new Error("WebGPU no disponible");
+}
+
+/* -----------------------
+   Utilidades matemáticas
+------------------------*/
+function vec3(x=0,y=0,z=0){ return new Float32Array([x,y,z]); }
+function add(a,b){ return vec3(a[0]+b[0],a[1]+b[1],a[2]+b[2]); }
+function sub(a,b){ return vec3(a[0]-b[0],a[1]-b[1],a[2]-b[2]); }
+function mul(a,s){ return vec3(a[0]*s,a[1]*s,a[2]*s); }
+function dot(a,b){ return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]; }
+function cross(a,b){ return vec3(
+  a[1]*b[2]-a[2]*b[1],
+  a[2]*b[0]-a[0]*b[2],
+  a[0]*b[1]-a[1]*b[0]
+); }
+function norm(a){ const d=Math.hypot(a[0],a[1],a[2]); return d>0?mul(a,1/d):vec3(); }
+
+/* -----------------------
+   Estado de cámara y input
+------------------------*/
+const canvas = document.getElementById("gfx");
+const hudFPS = document.getElementById("fps");
+const hudScale = document.getElementById("scale");
+const hudSPP = document.getElementById("spp");
+const hudBounces = document.getElementById("bounces");
+
+let camPos = vec3(0,1.2,4.0);
+let camYaw = 0.0;   // rotación horizontal
+let camPitch = 0.0; // rotación vertical
+let moveSpeed = 2.5; // m/s
+let keys = new Set();
+
+let mouseDown = false;
+let lastMouse = {x:0, y:0};
+
+document.addEventListener("keydown", (e)=> keys.add(e.code));
+document.addEventListener("keyup", (e)=> keys.delete(e.code));
+canvas.addEventListener("mousedown", (e)=> { mouseDown = true; lastMouse.x=e.clientX; lastMouse.y=e.clientY; });
+document.addEventListener("mouseup", ()=> mouseDown=false);
+document.addEventListener("mousemove", (e)=>{
+  if (!mouseDown) return;
+  const dx = e.clientX - lastMouse.x;
+  const dy = e.clientY - lastMouse.y;
+  lastMouse.x = e.clientX; lastMouse.y = e.clientY;
+  const sens = 0.0025;
+  camYaw += dx * sens;
+  camPitch = Math.max(-1.2, Math.min(1.2, camPitch - dy * sens));
+  cameraMoved(); // marcar movimiento
+});
+
+/* -----------------------
+   Calidad dinámica
+------------------------*/
+const targetFPS = 60;
+const targetFrameMs = 1000/targetFPS;
+let quality = { scale: 1.0, spp: 4, bounces: 3 };
+let stableFrames = 0;
+let moving = false;
+let lastCamPose = { pos: camPos.slice(), yaw: camYaw, pitch: camPitch };
+
+function poseDelta(){
+  const dp = sub(camPos, lastCamPose.pos);
+  const ang = Math.abs(camYaw - lastCamPose.yaw) + Math.abs(camPitch - lastCamPose.pitch);
+  const mag = Math.hypot(dp[0], dp[1], dp[2]) + ang;
+  lastCamPose.pos = camPos.slice();
+  lastCamPose.yaw = camYaw;
+  lastCamPose.pitch = camPitch;
+  return mag;
+}
+function cameraMoved(){ moving = true; resetAccumulation = 1; }
+
+function updateAdaptive(frameMs){
+  const motion = poseDelta();
+  moving = motion > 0.001 || frameMs > targetFrameMs;
+
+  if (moving) {
+    quality.scale = Math.max(0.55, quality.scale * 0.92);
+    quality.spp = Math.max(1, Math.floor(quality.spp * 0.75));
+    quality.bounces = Math.max(2, quality.bounces - 1);
+    resetAccumulation = 1;
+    stableFrames = 0;
+  } else {
+    stableFrames++;
+    if (stableFrames > 12) {
+      quality.scale = Math.min(1.0, quality.scale * 1.04);
+      if (quality.spp < 8) quality.spp += 1;
+      if (quality.bounces < 4) quality.bounces += 1;
+    }
+  }
+  hudScale.textContent = quality.scale.toFixed(2);
+  hudSPP.textContent = String(quality.spp);
+  hudBounces.textContent = String(quality.bounces);
+}
+
+/* -----------------------
+   Movimiento por frame
+------------------------*/
+function forwardVector(){
+  const cy = Math.cos(camYaw), sy = Math.sin(camYaw);
+  const cp = Math.cos(camPitch), sp = Math.sin(camPitch);
+  return norm(vec3(sy*cp, sp, -cy*cp));
+}
+function rightVector(){
+  const f = forwardVector();
+  return norm(cross(f, vec3(0,1,0)));
+}
+function updateCamera(dt){
+  const f = forwardVector();
+  const r = rightVector();
+  let delta = vec3();
+
+  if (keys.has("KeyW")) delta = add(delta, mul(f, moveSpeed*dt));
+  if (keys.has("KeyS")) delta = add(delta, mul(f, -moveSpeed*dt));
+  if (keys.has("KeyA")) delta = add(delta, mul(r, -moveSpeed*dt));
+  if (keys.has("KeyD")) delta = add(delta, mul(r, moveSpeed*dt));
+  if (keys.has("Space")) delta = add(delta, vec3(0, moveSpeed*dt, 0));
+  if (keys.has("ShiftLeft") || keys.has("ShiftRight")) delta = add(delta, vec3(0, -moveSpeed*dt, 0));
+
+  if (delta[0]!==0 || delta[1]!==0 || delta[2]!==0) cameraMoved();
+  camPos = add(camPos, delta);
+}
+
+/* -----------------------
+   WebGPU inicialización
+------------------------*/
+const adapter = await navigator.gpu.requestAdapter();
+const device = await adapter.requestDevice();
+const context = canvas.getContext("webgpu");
+const format = navigator.gpu.getPreferredCanvasFormat();
+context.configure({ device, format, alphaMode:"opaque" });
+
+/* -----------------------
+   Recursos de render
+------------------------*/
+let resetAccumulation = 1;
+
+const scene = {
+  // Esferas sencillas para trazado: [cx,cy,cz, radius, r,g,b, roughness]
+  spheres: new Float32Array([
+    // suelo (gran esfera)
+    0.0, -1001.0, 0.0, 1000.0, 0.8,0.8,0.8, 0.9,
+    // esfera roja
+    -1.5, 1.0, 0.0, 1.0, 1.0,0.2,0.2, 0.6,
+    // esfera verde
+    1.5, 1.0, 0.0, 1.0, 0.2,1.0,0.2, 0.6,
+    // esfera metal
+    0.0, 0.8, -2.0, 0.8, 0.9,0.9,1.0, 0.2
+  ])
+};
+
+const sphereBuffer = device.createBuffer({
+  size: scene.spheres.byteLength,
+  usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+});
+device.queue.writeBuffer(sphereBuffer, 0, scene.spheres);
+
+let width = 0, height = 0;
+function resize(){
+  const w = canvas.clientWidth | 0;
+  const h = canvas.clientHeight | 0;
+  if (w === width && h === height) return;
+  width = w; height = h;
+  canvas.width = width; canvas.height = height;
+  // recrear texturas según tamaño
+  createTextures();
+}
+window.addEventListener("resize", resize);
+resize();
+
+let renderTex, accumTex, tempTex;
+function createTextures(){
+  const texDesc = { size:[width, height], format:"rgba16float", usage:
+    GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING };
+  renderTex = device.createTexture(texDesc);
+  accumTex  = device.createTexture(texDesc);
+  tempTex   = device.createTexture(texDesc);
+}
+
+/* -----------------------
+   Shaders (WGSL)
+------------------------*/
+const rayShaderWGSL = /* wgsl */`
+struct Camera {
+  pos: vec3<f32>,
+  _pad0: f32,
+  fwd: vec3<f32>,
+  _pad1: f32,
+  right: vec3<f32>,
+  _pad2: f32,
+  up: vec3<f32>,
+  _pad3: f32,
+}
+
+struct Params {
+  resolution: vec2<f32>,
+  scale: f32,
+  spp: u32,
+  bounces: u32,
+  resetAccum: u32,
+  frameIndex: u32,
+}
+
+struct Sphere {
+  center: vec3<f32>,
+  radius: f32,
+  color: vec3<f32>,
+  roughness: f32,
+}
+
+@group(0) @binding(0) var<uniform> camera: Camera;
+@group(0) @binding(1) var<uniform> params: Params;
+@group(0) @binding(2) var<storage, read> spheres: array<Sphere>;
+@group(0) @binding(3) var accumImg : texture_storage_2d<rgba16float, write>;
+@group(0) @binding(4) var renderImg: texture_storage_2d<rgba16float, write>;
+@group(0) @binding(5) var history   : texture_2d<f32>;
+
+fn rand(p: vec2<f32>, seed: f32) -> f32 {
+  let v = sin(dot(p, vec2<f32>(12.9898,78.233)) + seed) * 43758.5453;
+  return fract(v);
+}
+
+fn sampleHemisphere(n: vec3<f32>, rnd: vec2<f32>) -> vec3<f32> {
+  // Cosine-weighted hemisphere
+  let phi = 2.0 * 3.14159265 * rnd.x;
+  let cosTheta = sqrt(1.0 - rnd.y);
+  let sinTheta = sqrt(1.0 - cosTheta*cosTheta);
+  // construir base ortonormal
+  let up = select(vec3<f32>(0.0,1.0,0.0), vec3<f32>(1.0,0.0,0.0), abs(n.y) > 0.99);
+  let t = normalize(cross(up, n));
+  let b = cross(n, t);
+  return normalize(t*(cos(phi)*sinTheta) + b*(sin(phi)*sinTheta) + n*cosTheta);
+}
+
+struct Hit {
+  p: vec3<f32>,
+  n: vec3<f32>,
+  color: vec3<f32>,
+  rough: f32,
+  hit: bool,
+}
+
+fn intersectRaySphere(ro: vec3<f32>, rd: vec3<f32>, s: Sphere) -> f32 {
+  let oc = ro - s.center;
+  let b = dot(oc, rd);
+  let c = dot(oc, oc) - s.radius*s.radius;
+  let h = b*b - c;
+  if (h < 0.0) { return -1.0; }
+  let t = -b - sqrt(h);
+  return select(t, -1.0, t < 0.0001);
+}
+
+fn trace(ro: vec3<f32>, rd: vec3<f32>) -> Hit {
+  var tMin = 1e9;
+  var h = Hit(vec3<f32>(0.0), vec3<f32>(0.0), vec3<f32>(0.0), 0.0, false);
+  for (var i=0u; i<arrayLength(&spheres); i=i+1u) {
+    let s = spheres[i];
+    let t = intersectRaySphere(ro, rd, s);
+    if (t > 0.0 && t < tMin) {
+      tMin = t;
+      h.hit = true;
+      h.p = ro + rd * t;
+      h.n = normalize(h.p - s.center);
+      h.color = s.color;
+      h.rough = s.roughness;
+    }
+  }
+  return h;
+}
+
+@compute @workgroup_size(8,8)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let scaled = vec2<f32>(params.scale, params.scale);
+  let res = vec2<f32>(params.resolution) * scaled;
+  if (gid.x >= u32(res.x) || gid.y >= u32(res.y)) {
+    return;
+  }
+  let uv = (vec2<f32>(gid.xy) + 0.5) / res;
+
+  var col = vec3<f32>(0.0);
+  let seedBase = f32(params.frameIndex);
+
+  for (var s=0u; s<params.spp; s=s+1u) {
+    let jitter = vec2<f32>(rand(uv, seedBase + f32(s)), rand(uv+0.37, seedBase + f32(s)*1.3));
+    // Ray primario (pinhole)
+    let px = (uv*2.0-1.0);
+    let dir = normalize(camera.fwd + camera.right*px.x + camera.up*px.y);
+
+    var rayO = camera.pos;
+    var rayD = normalize(dir);
+
+    var throughput = vec3<f32>(1.0);
+    var radiance = vec3<f32>(0.0);
+
+    for (var b=0u; b<params.bounces; b=b+1u) {
+      let hit = trace(rayO, rayD);
+      if (!hit.hit) {
+        // fondo leve
+        let t = 0.5*(rayD.y+1.0);
+        let sky = mix(vec3<f32>(0.6,0.7,1.0), vec3<f32>(0.1,0.1,0.12), t);
+        radiance += throughput * sky;
+        break;
+      }
+      // iluminación directa simple (lambert + cielo)
+      let nl = max(dot(hit.n, vec3<f32>(0.0,1.0,0.0)), 0.0);
+      let sky = vec3<f32>(0.8,0.85,1.0)*0.1;
+      radiance += throughput * (hit.color * (0.05 + 0.95*nl) + sky*0.05);
+
+      // scatter difuso/metal según roughness
+      let r1 = rand(uv + vec2<f32>(f32(b),0.0), seedBase + f32(s)*2.1);
+      let r2 = rand(uv + vec2<f32>(0.0,f32(b)), seedBase + f32(s)*3.7);
+      let hemi = sampleHemisphere(hit.n, vec2<f32>(r1,r2));
+      rayO = hit.p + hit.n*0.001;
+      // mezcla entre reflexión y difusión
+      rayD = normalize(mix(reflect(rayD, hit.n), hemi, hit.rough));
+      throughput *= hit.color;
+    }
+    col += radiance;
+  }
+
+  col /= f32(params.spp);
+
+  // Acumulación temporal
+  if (params.resetAccum == 0u) {
+    let prev = history.read(vec2<i32>(i32(gid.x), i32(gid.y)));
+    col = mix(prev.xyz, col, 0.1); // peso pequeño para estabilidad
+  }
+
+  // escribir buffers: accum y render
+  textureStore(accumImg, vec2<i32>(i32(gid.x), i32(gid.y)), vec4<f32>(col, 1.0));
+  textureStore(renderImg, vec2<i32>(i32(gid.x), i32(gid.y)), vec4<f32>(col, 1.0));
+}
+`;
+
+const denoiseWGSL = /* wgsl */`
+@group(0) @binding(0) var src : texture_2d<f32>;
+@group(0) @binding(1) var dst : texture_storage_2d<rgba16float, write>;
+
+fn luma(c: vec3<f32>) -> f32 { return dot(c, vec3<f32>(0.299,0.587,0.114)); }
+
+@compute @workgroup_size(8,8)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let size = vec2<i32>(textureDimensions(src));
+  if (gid.x >= u32(size.x) || gid.y >= u32(size.y)) { return; }
+
+  let p = vec2<i32>(i32(gid.x), i32(gid.y));
+  var sum = vec3<f32>(0.0);
+  var wsum = 0.0;
+
+  let c0 = src.read(p).xyz;
+  let l0 = luma(c0);
+
+  // Bilateral ligero 3x3
+  for (var dy=-1; dy<=1; dy=dy+1) {
+    for (var dx=-1; dx<=1; dx=dx+1) {
+      let q = vec2<i32>(clamp(p.x+dx, 0, size.x-1), clamp(p.y+dy, 0, size.y-1));
+      let c = src.read(q).xyz;
+      let l = luma(c);
+      let gs = exp(- (f32(dx*dx+dy*dy)) * 0.5);
+      let rs = exp(- abs(l - l0) * 6.0);
+      let w = gs * rs;
+      sum += c * w;
+      wsum += w;
+    }
+  }
+  let outc = select(c0, sum / max(wsum, 1e-5), wsum > 0.1);
+  textureStore(dst, p, vec4<f32>(outc, 1.0));
+}
+`;
+
+/* -----------------------
+   Pipelines y bind groups
+------------------------*/
+function createUniformBuffer(size){
+  return device.createBuffer({ size, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+}
+const cameraUBO = createUniformBuffer(4*4*4); // 4 vec3 + pads
+const paramsUBO  = createUniformBuffer(4*4 + 4*4); // vec2 + 5 u32 approx
+
+const rayModule = device.createShaderModule({ code: rayShaderWGSL });
+const denModule = device.createShaderModule({ code: denoiseWGSL });
+
+const rayPipeline = device.createComputePipeline({
+  layout: "auto",
+  compute: { module: rayModule, entryPoint: "main" }
+});
+const denPipeline = device.createComputePipeline({
+  layout: "auto",
+  compute: { module: denModule, entryPoint: "main" }
+});
+
+function texView(tex){ return tex.createView(); }
+
+function makeRayBindGroup(historyTex){
+  return device.createBindGroup({
+    layout: rayPipeline.getBindGroupLayout(0),
+    entries: [
+      { binding:0, resource: { buffer: cameraUBO } },
+      { binding:1, resource: { buffer: paramsUBO } },
+      { binding:2, resource: { buffer: sphereBuffer } },
+      { binding:3, resource: texView(accumTex) },
+      { binding:4, resource: texView(renderTex) },
+      { binding:5, resource: historyTex }
+    ]
+  });
+}
+function makeDenoiseBindGroup(srcTex){
+  return device.createBindGroup({
+    layout: denPipeline.getBindGroupLayout(0),
+    entries: [
+      { binding:0, resource: srcTex },
+      { binding:1, resource: texView(tempTex) }
+    ]
+  });
+}
+
+/* -----------------------
+   Blit a pantalla
+------------------------*/
+const blitShader = /* wgsl */`
+@group(0) @binding(0) var src : texture_2d<f32>;
+@group(0) @binding(1) var samp : sampler;
+
+struct VSOut { @builtin(position) pos: vec4<f32>, @location(0) uv: vec2<f32> };
+
+@vertex
+fn vs_main(@builtin(vertex_index) vid: u32) -> VSOut {
+  var pos = array<vec2<f32>, 6>(
+    vec2<f32>(-1.0,-1.0), vec2<f32>( 1.0,-1.0), vec2<f32>(-1.0, 1.0),
+    vec2<f32>(-1.0, 1.0), vec2<f32>( 1.0,-1.0), vec2<f32>( 1.0, 1.0));
+  var uv = array<vec2<f32>, 6>(
+    vec2<f32>(0.0,1.0), vec2<f32>(1.0,1.0), vec2<f32>(0.0,0.0),
+    vec2<f32>(0.0,0.0), vec2<f32>(1.0,1.0), vec2<f32>(1.0,0.0));
+  var out: VSOut;
+  out.pos = vec4<f32>(pos[vid], 0.0, 1.0);
+  out.uv = uv[vid];
+  return out;
+}
+
+@fragment
+fn fs_main(in: VSOut) -> @location(0) vec4<f32> {
+  let c = textureSample(src, samp, in.uv);
+  return vec4<f32>(c.rgb, 1.0);
+}
+`;
+const blitModule = device.createShaderModule({ code: blitShader });
+const blitPipeline = device.createRenderPipeline({
+  layout: "auto",
+  vertex: { module: blitModule, entryPoint: "vs_main" },
+  fragment: { module: blitModule, entryPoint: "fs_main", targets: [{ format }] },
+  primitive: { topology: "triangle-list" }
+});
+const blitSampler = device.createSampler({ magFilter:"linear", minFilter:"linear" });
+
+function makeBlitBindGroup(srcTex){
+  return device.createBindGroup({
+    layout: blitPipeline.getBindGroupLayout(0),
+    entries: [
+      { binding:0, resource: srcTex },
+      { binding:1, resource: blitSampler }
+    ]
+  });
+}
+
+/* -----------------------
+   Actualización de uniformes
+------------------------*/
+let frameIndex = 0;
+
+function updateCameraUBO(){
+  const f = forwardVector();
+  const r = rightVector();
+  const u = norm(cross(r, f));
+  const buf = new Float32Array(4*4*4/4);
+  // pos
+  buf.set([camPos[0], camPos[1], camPos[2], 0], 0);
+  // fwd
+  buf.set([f[0], f[1], f[2], 0], 4);
+  // right
+  buf.set([r[0], r[1], r[2], 0], 8);
+  // up
+  buf.set([u[0], u[1], u[2], 0], 12);
+  device.queue.writeBuffer(cameraUBO, 0, buf.buffer);
+}
+
+function updateParamsUBO(){
+  const p = new Float32Array(16); // suficiente
+  p[0] = width; p[1] = height; // resolution
+  p[2] = quality.scale;
+  // spp y demás como u32:
+  const u = new Uint32Array(p.buffer);
+  u[3] = quality.spp;
+  u[4] = quality.bounces;
+  u[5] = resetAccumulation;
+  u[6] = frameIndex;
+  device.queue.writeBuffer(paramsUBO, 0, p.buffer);
+}
+
+/* -----------------------
+   Render loop
+------------------------*/
+let lastTime = performance.now();
+function frame(){
+  const now = performance.now();
+  const dt = Math.min(0.1, (now - lastTime)/1000);
+  lastTime = now;
+
+  updateCamera(dt);
+
+  // tamaño y escala efectiva
+  const scaledW = Math.max(1, Math.floor(width * quality.scale));
+  const scaledH = Math.max(1, Math.floor(height* quality.scale));
+
+  // actualizar uniformes
+  updateCameraUBO();
+  updateParamsUBO();
+
+  // Bind groups por frame (history es accumTex actual)
+  const historyView = accumTex.createView({ dimension:"2d", format:"rgba16float" });
+  const rayBG = makeRayBindGroup(historyView);
+  const denBG = makeDenoiseBindGroup(renderTex.createView());
+  const blitBG = makeBlitBindGroup(tempTex.createView());
+
+  const encoder = device.createCommandEncoder();
+
+  // Compute: ray tracing
+  {
+    const pass = encoder.beginComputePass();
+    pass.setPipeline(rayPipeline);
+    pass.setBindGroup(0, rayBG);
+    pass.dispatchWorkgroups(Math.ceil(scaledW/8), Math.ceil(scaledH/8));
+    pass.end();
+  }
+
+  // Compute: denoise
+  {
+    const pass = encoder.beginComputePass();
+    pass.setPipeline(denPipeline);
+    pass.setBindGroup(0, denBG);
+    pass.dispatchWorkgroups(Math.ceil(scaledW/8), Math.ceil(scaledH/8));
+    pass.end();
+  }
+
+  // Render: blit a pantalla
+  const view = context.getCurrentTexture().createView();
+  {
+    const pass = encoder.beginRenderPass({
+      colorAttachments: [{
+        view,
+        loadOp:"clear", storeOp:"store", clearValue:{r:0,g:0,b:0,a:1}
+      }]
+    });
+    pass.setPipeline(blitPipeline);
+    pass.setBindGroup(0, blitBG);
+    pass.draw(6,1,0,0);
+    pass.end();
+  }
+
+  device.queue.submit([encoder.finish()]);
+
+  frameIndex++;
+  // calidad dinámica y estado
+  const frameMs = performance.now() - now;
+  hudFPS.textContent = (1000/frameMs).toFixed(1);
+  updateAdaptive(frameMs);
+  resetAccumulation = 0; // tras usarlo, volver a acumular
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
