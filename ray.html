@@ -18,6 +18,11 @@
   scale:<span id="scale">1.00</span> spp:<span id="spp">4</span> bounces:<span id="bounces">3</span></div>
 
 <script>
+/* --------- Declaración temprana --------- */
+let quality = { scale: 1.0, spp: 4, bounces: 3 };
+let resetAccumulation = 1;
+
+/* --------- Canvas y HUD --------- */
 const canvas = document.getElementById("gfx");
 const hudFPS = document.getElementById("fps");
 const hudScale = document.getElementById("scale");
@@ -27,9 +32,9 @@ const hudBounces = document.getElementById("bounces");
 const gl = canvas.getContext("webgl2", { antialias: false });
 if (!gl) { alert("Tu navegador no soporta WebGL2"); throw new Error("WebGL2 no disponible"); }
 const extColorFloat = gl.getExtension("EXT_color_buffer_float");
-const extTexFloatLinear = gl.getExtension("OES_texture_float_linear"); // mejora el blit
-if (!extColorFloat) console.warn("EXT_color_buffer_float no disponible: usando RGBA8 en vez de RGBA16F");
+const extTexFloatLinear = gl.getExtension("OES_texture_float_linear");
 
+/* --------- Resize --------- */
 function resize() {
   const w = canvas.clientWidth | 0;
   const h = canvas.clientHeight | 0;
@@ -65,43 +70,11 @@ document.addEventListener("mousemove", (e)=>{
   cameraMoved();
 });
 
-function forwardVector() {
-  const cy = Math.cos(camYaw), sy = Math.sin(camYaw);
-  const cp = Math.cos(camPitch), sp = Math.sin(camPitch);
-  const f = [sy*cp, sp, -cy*cp];
-  const n = Math.hypot(f[0], f[1], f[2]); return [f[0]/n, f[1]/n, f[2]/n];
-}
-function rightVector() {
-  const f = forwardVector();
-  const up = [0,1,0];
-  const r = [
-    f[1]*up[2] - f[2]*up[1],
-    f[2]*up[0] - f[0]*up[2],
-    f[0]*up[1] - f[1]*up[0]
-  ];
-  const n = Math.hypot(r[0], r[1], r[2]); return [r[0]/n, r[1]/n, r[2]/n];
-}
-function updateCamera(dt) {
-  const f = forwardVector();
-  const r = rightVector();
-  let dx=0,dy=0,dz=0;
-  if (keys.has("KeyW")) { dx += f[0]*moveSpeed*dt; dy += f[1]*moveSpeed*dt; dz += f[2]*moveSpeed*dt; }
-  if (keys.has("KeyS")) { dx -= f[0]*moveSpeed*dt; dy -= f[1]*moveSpeed*dt; dz -= f[2]*moveSpeed*dt; }
-  if (keys.has("KeyA")) { dx -= r[0]*moveSpeed*dt; dy -= r[1]*moveSpeed*dt; dz -= r[2]*moveSpeed*dt; }
-  if (keys.has("KeyD")) { dx += r[0]*moveSpeed*dt; dy += r[1]*moveSpeed*dt; dz += r[2]*moveSpeed*dt; }
-  if (keys.has("Space")) { dy += moveSpeed*dt; }
-  if (keys.has("ShiftLeft") || keys.has("ShiftRight")) { dy -= moveSpeed*dt; }
-  if (dx || dy || dz) cameraMoved();
-  camPos[0] += dx; camPos[1] += dy; camPos[2] += dz;
-}
-
 /* --------- Calidad dinámica --------- */
 const targetFPS = 60;
 const targetFrameMs = 1000/targetFPS;
-let quality = { scale: 1.0, spp: 4, bounces: 3 };
 let stableFrames = 0;
 let moving = false;
-let resetAccumulation = 1;
 let lastPose = { pos: camPos.slice(), yaw: camYaw, pitch: camPitch };
 
 function poseDelta() {
@@ -220,16 +193,17 @@ Hit traceScene(vec3 ro, vec3 rd){
 }
 
 void main(){
-  vec2 res = uResolution * uScale;
-  vec2 uv = vUV; // ya va de 0..1 en texcoord del quad
+  vec2 uv = vUV;
   vec2 ndc = uv*2.0 - 1.0;
-
   vec3 col = vec3(0.0);
   float seedBase = float(uFrameIndex);
 
   for (int s=0; s<uSPP; ++s){
+    // Jitter aleatorio para antialiasing
     float j1 = rand(uv, seedBase + float(s));
     float j2 = rand(uv + 0.37, seedBase + float(s)*1.3);
+
+    // Dirección primaria de rayo (pinhole camera)
     vec3 dir = normalize(uCamFwd + uCamRight*ndc.x + uCamUp*ndc.y);
 
     vec3 rayO = uCamPos;
@@ -240,15 +214,18 @@ void main(){
     for (int b=0; b<uBounces; ++b){
       Hit h = traceScene(rayO, rayD);
       if (!h.ok){
+        // Fondo (cielo)
         float t = 0.5*(rayD.y+1.0);
         vec3 sky = mix(vec3(0.6,0.7,1.0), vec3(0.1,0.1,0.12), t);
         radiance += throughput * sky;
         break;
       }
+      // Iluminación difusa simple
       float nl = max(dot(h.n, vec3(0,1,0)), 0.0);
       vec3 sky = vec3(0.8,0.85,1.0)*0.1;
       radiance += throughput * (h.color * (0.05 + 0.95*nl) + sky*0.05);
 
+      // Scatter: mezcla reflexión y difusión
       float r1 = rand(uv + vec2(float(b),0.0), seedBase + float(s)*2.1);
       float r2 = rand(uv + vec2(0.0,float(b)), seedBase + float(s)*3.7);
       vec3 hemi = sampleHemisphere(h.n, vec2(r1,r2));
@@ -260,6 +237,7 @@ void main(){
   }
   col /= float(uSPP);
 
+  // Acumulación temporal
   if (uResetAccum == 0) {
     vec3 prev = texture(uHistory, uv).rgb;
     col = mix(prev, col, 0.1);
@@ -267,250 +245,3 @@ void main(){
 
   fragColor = vec4(col, 1.0);
 }
-`;
-
-const fsBlit = `#version 300 es
-precision highp float;
-in vec2 vUV;
-out vec4 fragColor;
-uniform sampler2D uSrc;
-void main(){
-  fragColor = texture(uSrc, vUV);
-}
-`;
-
-/* --------- Programas --------- */
-function compile(type, src){
-  const s = gl.createShader(type);
-  gl.shaderSource(s, src); gl.compileShader(s);
-  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-    console.error(gl.getShaderInfoLog(s)); throw new Error("Shader error");
-  }
-  return s;
-}
-function linkProgram(vsSrc, fsSrc){
-  const vs = compile(gl.VERTEX_SHADER, vsSrc);
-  const fs = compile(gl.FRAGMENT_SHADER, fsSrc);
-  const p = gl.createProgram();
-  gl.attachShader(p, vs); gl.attachShader(p, fs);
-  gl.bindAttribLocation(p, 0, "aPos");
-  gl.bindAttribLocation(p, 1, "aUV");
-  gl.linkProgram(p);
-  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
-    console.error(gl.getProgramInfoLog(p)); throw new Error("Program link error");
-  }
-  return p;
-}
-const progTrace = linkProgram(vsQuad, fsPathTrace);
-const progBlit = linkProgram(vsQuad, fsBlit);
-
-/* --------- Fullscreen quad --------- */
-const quadVAO = gl.createVertexArray();
-gl.bindVertexArray(quadVAO);
-const quadVBO = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, quadVBO);
-const quadData = new Float32Array([
-  // pos    // uv
-  -1,-1,   0,1,
-   1,-1,   1,1,
-  -1, 1,   0,0,
-  -1, 1,   0,0,
-   1,-1,   1,1,
-   1, 1,   1,0
-]);
-gl.bufferData(gl.ARRAY_BUFFER, quadData, gl.STATIC_DRAW);
-gl.enableVertexAttribArray(0);
-gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
-gl.enableVertexAttribArray(1);
-gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
-gl.bindVertexArray(null);
-
-/* --------- Render targets y FBOs --------- */
-let rtWidth=0, rtHeight=0;
-let rtColor = null, rtFBO = null;
-let historyTex = null;
-
-function makeTexture(w, h, float16=false){
-  const tex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, extTexFloatLinear ? gl.LINEAR : gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  if (float16 && extColorFloat) {
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.FLOAT, null);
-  } else {
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-  }
-  gl.bindTexture(gl.TEXTURE_2D, null);
-  return tex;
-}
-
-function recreateTargets() {
-  const scale = quality.scale;
-  rtWidth = Math.max(1, Math.floor(canvas.width * scale));
-  rtHeight = Math.max(1, Math.floor(canvas.height * scale));
-
-  if (rtColor) { gl.deleteTexture(rtColor); rtColor=null; }
-  if (historyTex) { gl.deleteTexture(historyTex); historyTex=null; }
-  if (rtFBO) { gl.deleteFramebuffer(rtFBO); rtFBO=null; }
-
-  rtColor = makeTexture(rtWidth, rtHeight, true);
-  historyTex = makeTexture(rtWidth, rtHeight, true);
-
-  rtFBO = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, rtFBO);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rtColor, 0);
-  const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-  if (status !== gl.FRAMEBUFFER_COMPLETE) {
-    console.warn("FBO incompleto, usando RGBA8 en lugar de RGBA16F");
-    gl.deleteTexture(rtColor);
-    gl.deleteTexture(historyTex);
-    rtColor = makeTexture(rtWidth, rtHeight, false);
-    historyTex = makeTexture(rtWidth, rtHeight, false);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rtColor, 0);
-  }
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  resetAccumulation = 1;
-}
-
-/* --------- Uniform locations --------- */
-gl.useProgram(progTrace);
-const loc = {
-  uCamPos: gl.getUniformLocation(progTrace, "uCamPos"),
-  uCamFwd: gl.getUniformLocation(progTrace, "uCamFwd"),
-  uCamRight: gl.getUniformLocation(progTrace, "uCamRight"),
-  uCamUp: gl.getUniformLocation(progTrace, "uCamUp"),
-  uResolution: gl.getUniformLocation(progTrace, "uResolution"),
-  uScale: gl.getUniformLocation(progTrace, "uScale"),
-  uSPP: gl.getUniformLocation(progTrace, "uSPP"),
-  uBounces: gl.getUniformLocation(progTrace, "uBounces"),
-  uResetAccum: gl.getUniformLocation(progTrace, "uResetAccum"),
-  uFrameIndex: gl.getUniformLocation(progTrace, "uFrameIndex"),
-  uHistory: gl.getUniformLocation(progTrace, "uHistory"),
-  uSphereCenterRadius: [
-    gl.getUniformLocation(progTrace, "uSphereCenterRadius[0]"),
-    gl.getUniformLocation(progTrace, "uSphereCenterRadius[1]"),
-    gl.getUniformLocation(progTrace, "uSphereCenterRadius[2]"),
-    gl.getUniformLocation(progTrace, "uSphereCenterRadius[3]")
-  ],
-  uSphereColorRough: [
-    gl.getUniformLocation(progTrace, "uSphereColorRough[0]"),
-    gl.getUniformLocation(progTrace, "uSphereColorRough[1]"),
-    gl.getUniformLocation(progTrace, "uSphereColorRough[2]"),
-    gl.getUniformLocation(progTrace, "uSphereColorRough[3]")
-  ]
-};
-gl.useProgram(progBlit);
-const locBlit = { uSrc: gl.getUniformLocation(progBlit, "uSrc") };
-
-/* --------- Escena --------- */
-const spheresCenterRadius = [
-  [ 0.0, -1001.0,  0.0, 1000.0], // suelo
-  [-1.5,    1.0,  0.0,    1.0], // roja
-  [ 1.5,    1.0,  0.0,    1.0], // verde
-  [ 0.0,    0.8, -2.0,    0.8]  // metal
-];
-const spheresColorRough = [
-  [0.8,0.8,0.8, 0.9],
-  [1.0,0.2,0.2, 0.6],
-  [0.2,1.0,0.2, 0.6],
-  [0.9,0.9,1.0, 0.2]
-];
-
-/* --------- Bucle de render --------- */
-let frameIndex = 0;
-let lastTime = performance.now();
-
-function render() {
-  const now = performance.now();
-  const dt = Math.min(0.1, (now - lastTime)/1000);
-  lastTime = now;
-
-  updateCamera(dt);
-
-  // recrea targets si cambió tamaño o escala
-  const desiredW = Math.max(1, Math.floor(canvas.width * quality.scale));
-  const desiredH = Math.max(1, Math.floor(canvas.height * quality.scale));
-  if (desiredW !== rtWidth || desiredH !== rtHeight) recreateTargets();
-
-  // 1) Path tracing a rtColor
-  gl.bindFramebuffer(gl.FRAMEBUFFER, rtFBO);
-  gl.viewport(0, 0, rtWidth, rtHeight);
-  gl.useProgram(progTrace);
-  gl.bindVertexArray(quadVAO);
-
-  const f = forwardVector();
-  const r = rightVector();
-  const u = (function(){ // up = normalize(cross(r, f))
-    const c = [ r[1]*f[2]-r[2]*f[1], r[2]*f[0]-r[0]*f[2], r[0]*f[1]-r[1]*f[0] ];
-    const n = Math.hypot(c[0], c[1], c[2]); return [c[0]/n, c[1]/n, c[2]/n];
-  })();
-
-  gl.uniform3fv(loc.uCamPos, camPos);
-  gl.uniform3fv(loc.uCamFwd, f);
-  gl.uniform3fv(loc.uCamRight, r);
-  gl.uniform3fv(loc.uCamUp, u);
-  gl.uniform2f(loc.uResolution, canvas.width, canvas.height);
-  gl.uniform1f(loc.uScale, quality.scale);
-  gl.uniform1i(loc.uSPP, quality.spp);
-  gl.uniform1i(loc.uBounces, quality.bounces);
-  gl.uniform1i(loc.uResetAccum, resetAccumulation);
-  gl.uniform1i(loc.uFrameIndex, frameIndex);
-
-  // escena
-  for (let i=0;i<4;i++){
-    gl.uniform4fv(loc.uSphereCenterRadius[i], spheresCenterRadius[i]);
-    gl.uniform4fv(loc.uSphereColorRough[i], spheresColorRough[i]);
-  }
-
-  // history texture
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, historyTex);
-  gl.uniform1i(loc.uHistory, 0);
-
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
-  gl.bindVertexArray(null);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-  // 2) Blit a pantalla (upsampling)
-  gl.viewport(0, 0, canvas.width, canvas.height);
-  gl.useProgram(progBlit);
-  gl.bindVertexArray(quadVAO);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, rtColor);
-  gl.uniform1i(locBlit.uSrc, 0);
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
-  gl.bindVertexArray(null);
-
-  // 3) Copiar rtColor -> history para acumulación del siguiente frame
-  gl.bindFramebuffer(gl.FRAMEBUFFER, rtFBO);
-  gl.bindTexture(gl.TEXTURE_2D, historyTex);
-  // swap: render copiado a history (simplem. re-render con blit shader a history)
-  // Creamos FBO temporal para historyTex
-  const fboHist = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, fboHist);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, historyTex, 0);
-  gl.viewport(0, 0, rtWidth, rtHeight);
-  gl.useProgram(progBlit);
-  gl.bindVertexArray(quadVAO);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, rtColor);
-  gl.uniform1i(locBlit.uSrc, 0);
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
-  gl.bindVertexArray(null);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.deleteFramebuffer(fboHist);
-
-  frameIndex++;
-  const frameMs = performance.now() - now;
-  hudFPS.textContent = (1000/frameMs).toFixed(1);
-  updateAdaptive(frameMs);
-  resetAccumulation = 0;
-
-  requestAnimationFrame(render);
-}
-requestAnimationFrame(render);
-</script>
-</body>
-</html>
