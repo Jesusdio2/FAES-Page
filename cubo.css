@@ -1,33 +1,25 @@
-body {
-  margin: 0;
-  overflow: hidden;
-  background: black;
-  font-family: system-ui, sans-serif;
-}
-
-#controls {
+#toggleRenderer {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 16px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  z-index: 10;
-}
-
-#controls button {
-  min-width: 140px;
-  min-height: 56px;
-  font-size: 18px;
+  top: 16px;
+  left: 16px;
+  min-width: 160px;
+  min-height: 48px;
+  font-size: 16px;
   font-weight: bold;
   border-radius: 12px;
   border: 2px solid rgba(255,255,255,0.8);
   background: rgba(255,255,255,0.15);
   color: #fff;
+  z-index: 20;
+  transition: transform 0.1s ease, background 0.2s ease;
 }
 
-#controls button:active {
+#toggleRenderer:hover {
+  background: rgba(255,255,255,0.3);
+  cursor: pointer;
+}
+
+#toggleRenderer:active {
   transform: scale(0.95);
   background: rgba(255,255,255,0.25);
 }
