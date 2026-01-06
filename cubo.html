@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="cubo.css">
 </head>
 <body>
+  <!-- Controles táctiles -->
   <div id="controls">
     <button data-action="forward">Avanzar</button>
     <button data-action="back">Retroceder</button>
@@ -15,10 +16,16 @@
     <button data-action="down">Bajar</button>
   </div>
 
-  <!-- Three.js -->
+  <!-- Botón para alternar renderers -->
+  <button id="toggleRenderer">Cambiar Renderer</button>
+
+  <!-- Librerías Three.js -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <!-- VRButton -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/vr/VRButton.js"></script>
+  <!-- SVGRenderer -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/SVGRenderer.js"></script>
+
   <!-- Tu escena -->
   <script src="cubo.js"></script>
 </body>
