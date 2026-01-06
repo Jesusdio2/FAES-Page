@@ -1,247 +1,222 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>WebGL2 Ray Tracing WASD + Calidad dinámica</title>
-  <style>
-    html, body { margin:0; height:100%; background:#000; }
-    canvas { width:100vw; height:100vh; display:block; }
-    #hud {
-      position:fixed; top:10px; left:10px; color:#0f0; font:12px/1.4 monospace;
-      background:rgba(0,0,0,0.4); padding:8px; border:1px solid #0f0;
-    }
-  </style>
+<meta charset="utf-8">
+<title>WebGL2 Path Tracer Acumulativo</title>
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+canvas{width:100%;height:100%;display:block}
+#hud{
+  position:fixed;left:10px;top:10px;
+  color:#0f0;font:12px monospace;
+  background:rgba(0,0,0,.4);
+  padding:8px;border:1px solid #0f0
+}
+</style>
 </head>
 <body>
-  <canvas id="gfx"></canvas>
-  <div id="hud">WASD: mover | Espacio: subir | Shift: bajar | FPS: <span id="fps">0</span><br>
-  scale:<span id="scale">1.00</span> spp:<span id="spp">4</span> bounces:<span id="bounces">3</span></div>
+
+<canvas id="c"></canvas>
+<div id="hud">
+WASD mover · Espacio subir · Shift bajar<br>
+Frames acumulados: <span id="f">0</span>
+</div>
 
 <script>
-/* --------- Declaración temprana --------- */
-let quality = { scale: 1.0, spp: 4, bounces: 3 };
-let resetAccumulation = 1;
+const canvas = document.getElementById("c");
+const gl = canvas.getContext("webgl2");
+if(!gl){ alert("WebGL2 no disponible"); throw 0; }
 
-/* --------- Canvas y HUD --------- */
-const canvas = document.getElementById("gfx");
-const hudFPS = document.getElementById("fps");
-const hudScale = document.getElementById("scale");
-const hudSPP = document.getElementById("spp");
-const hudBounces = document.getElementById("bounces");
-
-const gl = canvas.getContext("webgl2", { antialias: false });
-if (!gl) { alert("Tu navegador no soporta WebGL2"); throw new Error("WebGL2 no disponible"); }
-const extColorFloat = gl.getExtension("EXT_color_buffer_float");
-const extTexFloatLinear = gl.getExtension("OES_texture_float_linear");
-
-/* --------- Resize --------- */
-function resize() {
-  const w = canvas.clientWidth | 0;
-  const h = canvas.clientHeight | 0;
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w; canvas.height = h;
-    recreateTargets();
-  }
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+  gl.viewport(0,0,canvas.width,canvas.height);
 }
-window.addEventListener("resize", resize);
+addEventListener("resize",resize);
 resize();
 
-/* --------- Cámara e input --------- */
-let camPos = [0, 1.2, 4.0];
-let camYaw = 0.0;
-let camPitch = 0.0;
-let moveSpeed = 2.5;
-let keys = new Set();
-let mouseDown = false;
-let lastMouse = {x:0,y:0};
+/* ================= SHADERS ================= */
 
-document.addEventListener("keydown", (e)=> keys.add(e.code));
-document.addEventListener("keyup", (e)=> keys.delete(e.code));
-canvas.addEventListener("mousedown", (e)=> { mouseDown = true; lastMouse.x=e.clientX; lastMouse.y=e.clientY; });
-document.addEventListener("mouseup", ()=> mouseDown=false);
-document.addEventListener("mousemove", (e)=>{
-  if (!mouseDown) return;
-  const dx = e.clientX - lastMouse.x;
-  const dy = e.clientY - lastMouse.y;
-  lastMouse.x = e.clientX; lastMouse.y = e.clientY;
-  const sens = 0.0025;
-  camYaw += dx * sens;
-  camPitch = Math.max(-1.2, Math.min(1.2, camPitch - dy * sens));
-  cameraMoved();
-});
-
-/* --------- Calidad dinámica --------- */
-const targetFPS = 60;
-const targetFrameMs = 1000/targetFPS;
-let stableFrames = 0;
-let moving = false;
-let lastPose = { pos: camPos.slice(), yaw: camYaw, pitch: camPitch };
-
-function poseDelta() {
-  const dp = [
-    camPos[0]-lastPose.pos[0],
-    camPos[1]-lastPose.pos[1],
-    camPos[2]-lastPose.pos[2]
-  ];
-  const ang = Math.abs(camYaw - lastPose.yaw) + Math.abs(camPitch - lastPose.pitch);
-  const mag = Math.hypot(dp[0], dp[1], dp[2]) + ang;
-  lastPose.pos = camPos.slice();
-  lastPose.yaw = camYaw; lastPose.pitch = camPitch;
-  return mag;
-}
-function cameraMoved(){ moving = true; resetAccumulation = 1; }
-function updateAdaptive(frameMs) {
-  const motion = poseDelta();
-  moving = motion > 0.001 || frameMs > targetFrameMs;
-  if (moving) {
-    quality.scale = Math.max(0.55, quality.scale * 0.92);
-    quality.spp = Math.max(1, Math.floor(quality.spp * 0.75));
-    quality.bounces = Math.max(2, quality.bounces - 1);
-    resetAccumulation = 1;
-    stableFrames = 0;
-  } else {
-    stableFrames++;
-    if (stableFrames > 12) {
-      quality.scale = Math.min(1.0, quality.scale * 1.04);
-      if (quality.spp < 8) quality.spp += 1;
-      if (quality.bounces < 4) quality.bounces += 1;
-    }
-  }
-  hudScale.textContent = quality.scale.toFixed(2);
-  hudSPP.textContent = String(quality.spp);
-  hudBounces.textContent = String(quality.bounces);
-}
-
-/* --------- Shaders --------- */
-const vsQuad = `#version 300 es
-layout(location=0) in vec2 aPos;
-layout(location=1) in vec2 aUV;
-out vec2 vUV;
+const vs = `#version 300 es
+layout(location=0) in vec2 p;
+out vec2 uv;
 void main(){
-  vUV = aUV;
-  gl_Position = vec4(aPos, 0.0, 1.0);
-}
-`;
+  uv = p*0.5+0.5;
+  gl_Position = vec4(p,0,1);
+}`;
 
-const fsPathTrace = `#version 300 es
+const fs = `#version 300 es
 precision highp float;
-in vec2 vUV;
-out vec4 fragColor;
+in vec2 uv;
+out vec4 frag;
 
-uniform vec3 uCamPos;
-uniform vec3 uCamFwd;
-uniform vec3 uCamRight;
-uniform vec3 uCamUp;
+uniform vec3 camPos, camF, camR, camU;
+uniform sampler2D history;
+uniform int frame;
+uniform vec2 res;
 
-uniform vec2 uResolution;
-uniform float uScale;
-uniform int uSPP;
-uniform int uBounces;
-uniform int uResetAccum;
-uniform int uFrameIndex;
-
-uniform sampler2D uHistory;
-
-// Escena: 4 esferas (centro.xyz, radio, color.rgb, roughness)
-uniform vec4 uSphereCenterRadius[4];
-uniform vec4 uSphereColorRough[4];
-
-float rand(vec2 p, float seed){
-  return fract(sin(dot(p, vec2(12.9898, 78.233)) + seed) * 43758.5453);
-}
-vec3 sampleHemisphere(vec3 n, vec2 rnd){
-  float phi = 6.2831853 * rnd.x;
-  float cosTheta = sqrt(1.0 - rnd.y);
-  float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
-  vec3 up = abs(n.y) > 0.99 ? vec3(1,0,0) : vec3(0,1,0);
-  vec3 t = normalize(cross(up, n));
-  vec3 b = cross(n, t);
-  return normalize(t*(cos(phi)*sinTheta) + b*(sin(phi)*sinTheta) + n*cosTheta);
+float rnd(vec2 p,float s){
+  return fract(sin(dot(p+s,vec2(12.9898,78.233)))*43758.5453);
 }
 
-bool intersectSphere(vec3 ro, vec3 rd, vec4 scR, out float t, out vec3 n){
-  vec3 oc = ro - scR.xyz;
-  float b = dot(oc, rd);
-  float c = dot(oc, oc) - scR.w*scR.w;
-  float h = b*b - c;
-  if (h < 0.0) { t = -1.0; return false; }
-  float tt = -b - sqrt(h);
-  if (tt < 0.0001) { t = -1.0; return false; }
-  t = tt;
-  vec3 p = ro + rd * t;
-  n = normalize(p - scR.xyz);
+bool sphere(vec3 ro,vec3 rd,vec3 c,float r,out float t,out vec3 n){
+  vec3 oc=ro-c;
+  float b=dot(oc,rd);
+  float h=b*b-dot(oc,oc)+r*r;
+  if(h<0.)return false;
+  t=-b-sqrt(h);
+  if(t<0.)return false;
+  n=normalize(ro+rd*t-c);
   return true;
 }
 
-struct Hit { vec3 p; vec3 n; vec3 color; float rough; bool ok; };
-
-Hit traceScene(vec3 ro, vec3 rd){
-  float tMin = 1e9; Hit h; h.ok=false;
-  for (int i=0; i<4; ++i){
-    float t; vec3 n;
-    if (intersectSphere(ro, rd, uSphereCenterRadius[i], t, n)){
-      if (t > 0.0 && t < tMin){
-        tMin = t; h.ok = true;
-        h.p = ro + rd * t;
-        h.n = n;
-        h.color = uSphereColorRough[i].xyz;
-        h.rough = uSphereColorRough[i].w;
-      }
-    }
-  }
-  return h;
-}
-
 void main(){
-  vec2 uv = vUV;
-  vec2 ndc = uv*2.0 - 1.0;
-  vec3 col = vec3(0.0);
-  float seedBase = float(uFrameIndex);
+  vec2 p=uv*2.-1.;
+  vec3 rd=normalize(camF+p.x*camR+p.y*camU);
+  vec3 ro=camPos;
 
-  for (int s=0; s<uSPP; ++s){
-    // Jitter aleatorio para antialiasing
-    float j1 = rand(uv, seedBase + float(s));
-    float j2 = rand(uv + 0.37, seedBase + float(s)*1.3);
+  vec3 col=vec3(0);
+  vec3 tp=vec3(1);
 
-    // Dirección primaria de rayo (pinhole camera)
-    vec3 dir = normalize(uCamFwd + uCamRight*ndc.x + uCamUp*ndc.y);
-
-    vec3 rayO = uCamPos;
-    vec3 rayD = dir;
-    vec3 throughput = vec3(1.0);
-    vec3 radiance = vec3(0.0);
-
-    for (int b=0; b<uBounces; ++b){
-      Hit h = traceScene(rayO, rayD);
-      if (!h.ok){
-        // Fondo (cielo)
-        float t = 0.5*(rayD.y+1.0);
-        vec3 sky = mix(vec3(0.6,0.7,1.0), vec3(0.1,0.1,0.12), t);
-        radiance += throughput * sky;
-        break;
-      }
-      // Iluminación difusa simple
-      float nl = max(dot(h.n, vec3(0,1,0)), 0.0);
-      vec3 sky = vec3(0.8,0.85,1.0)*0.1;
-      radiance += throughput * (h.color * (0.05 + 0.95*nl) + sky*0.05);
-
-      // Scatter: mezcla reflexión y difusión
-      float r1 = rand(uv + vec2(float(b),0.0), seedBase + float(s)*2.1);
-      float r2 = rand(uv + vec2(0.0,float(b)), seedBase + float(s)*3.7);
-      vec3 hemi = sampleHemisphere(h.n, vec2(r1,r2));
-      rayO = h.p + h.n*0.001;
-      rayD = normalize(mix(reflect(rayD, h.n), hemi, h.rough));
-      throughput *= h.color;
+  for(int b=0;b<3;b++){
+    float t; vec3 n;
+    if(sphere(ro,rd,vec3(0,1,0),1.,t,n)){
+      ro+=rd*t+n*0.001;
+      rd=normalize(n+vec3(
+        rnd(uv,float(frame)+float(b)),
+        rnd(uv+1.,float(frame)),
+        rnd(uv+2.,float(frame))
+      )-0.5);
+      col+=tp*vec3(0.8,0.3,0.2);
+      tp*=0.5;
+    }else{
+      col+=tp*mix(vec3(0.6,0.7,1),vec3(0.1),rd.y*0.5+0.5);
+      break;
     }
-    col += radiance;
-  }
-  col /= float(uSPP);
-
-  // Acumulación temporal
-  if (uResetAccum == 0) {
-    vec3 prev = texture(uHistory, uv).rgb;
-    col = mix(prev, col, 0.1);
   }
 
-  fragColor = vec4(col, 1.0);
+  vec3 prev = texture(history,uv).rgb;
+  float a = frame==0 ? 1.0 : 1.0/float(frame+1);
+  frag = vec4(mix(prev,col,a),1);
+}`;
+
+/* =============== PROGRAMA ================= */
+
+function compile(type,src){
+  const s=gl.createShader(type);
+  gl.shaderSource(s,src);
+  gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))
+    throw gl.getShaderInfoLog(s);
+  return s;
 }
+
+const prog=gl.createProgram();
+gl.attachShader(prog,compile(gl.VERTEX_SHADER,vs));
+gl.attachShader(prog,compile(gl.FRAGMENT_SHADER,fs));
+gl.linkProgram(prog);
+gl.useProgram(prog);
+
+/* =============== QUAD ================= */
+
+const vao=gl.createVertexArray();
+gl.bindVertexArray(vao);
+
+const vbo=gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([
+  -1,-1, 1,-1, -1,1, 1,1
+]),gl.STATIC_DRAW);
+
+gl.enableVertexAttribArray(0);
+gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+
+/* ============ TEXTURA HISTORIA ============ */
+
+function makeTex(){
+  const t=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA32F,
+    canvas.width,canvas.height,0,
+    gl.RGBA,gl.FLOAT,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  return t;
+}
+
+let texA=makeTex(), texB=makeTex();
+const fb=gl.createFramebuffer();
+
+/* =============== CÁMARA ================= */
+
+let camPos=[0,1.2,4];
+let yaw=0;
+let frame=0;
+const keys=new Set();
+
+onkeydown=e=>keys.add(e.code);
+onkeyup=e=>keys.delete(e.code);
+
+canvas.onclick=()=>canvas.requestPointerLock();
+onmousemove=e=>{
+  if(document.pointerLockElement!==canvas)return;
+  yaw-=e.movementX*0.002;
+  frame=0;
+};
+
+function update(dt){
+  const sp=dt*3;
+  const f=[Math.sin(yaw),0,-Math.cos(yaw)];
+  const r=[Math.cos(yaw),0,Math.sin(yaw)];
+
+  if(keys.has("KeyW")){camPos[0]+=f[0]*sp;camPos[2]+=f[2]*sp;frame=0;}
+  if(keys.has("KeyS")){camPos[0]-=f[0]*sp;camPos[2]-=f[2]*sp;frame=0;}
+  if(keys.has("KeyA")){camPos[0]-=r[0]*sp;camPos[2]-=r[2]*sp;frame=0;}
+  if(keys.has("KeyD")){camPos[0]+=r[0]*sp;camPos[2]+=r[2]*sp;frame=0;}
+  if(keys.has("Space")){camPos[1]+=sp;frame=0;}
+  if(keys.has("ShiftLeft")){camPos[1]-=sp;frame=0;}
+}
+
+/* =============== LOOP ================= */
+
+let last=performance.now();
+function loop(t){
+  const dt=(t-last)/1000; last=t;
+  update(dt);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,
+    gl.TEXTURE_2D,texB,0);
+
+  gl.useProgram(prog);
+  gl.uniform3fv(gl.getUniformLocation(prog,"camPos"),camPos);
+  gl.uniform3fv(gl.getUniformLocation(prog,"camF"),
+    [Math.sin(yaw),0,-Math.cos(yaw)]);
+  gl.uniform3fv(gl.getUniformLocation(prog,"camR"),
+    [Math.cos(yaw),0,Math.sin(yaw)]);
+  gl.uniform3fv(gl.getUniformLocation(prog,"camU"),[0,1,0]);
+  gl.uniform1i(gl.getUniformLocation(prog,"frame"),frame);
+  gl.uniform2f(gl.getUniformLocation(prog,"res"),
+    canvas.width,canvas.height);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D,texA);
+  gl.uniform1i(gl.getUniformLocation(prog,"history"),0);
+
+  gl.bindVertexArray(vao);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+
+  gl.bindFramebuffer(gl.READ_FRAMEBUFFER,fb);
+  gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER,null);
+  gl.blitFramebuffer(0,0,canvas.width,canvas.height,
+                     0,0,canvas.width,canvas.height,
+                     gl.COLOR_BUFFER_BIT,gl.NEAREST);
+
+  [texA,texB]=[texB,texA];
+  document.getElementById("f").textContent=frame++;
+  requestAnimationFrame(loop);
+}
+loop(last);
+</script>
+</body>
+</html>
