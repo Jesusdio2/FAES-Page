@@ -1,0 +1,6 @@
+version: 2
+updates:
+  - package-ecosystem: "bundler" # Para proyectos Jekyll en GitHub Pages
+    directory: "/"               # Ubicación del archivo Gemfile
+    schedule:
+      interval: "weekly"         # Revisa actualizaciones cada semana
