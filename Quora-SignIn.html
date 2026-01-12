@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Tu Client ID público -->
+  <meta name="google-signin-client_id" content="917071888555.apps.googleusercontent.com" />
+
+  <title>Login con Google</title>
+
+  <!-- Carga de Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; }
+    #user { margin-top: 1rem; padding: .75rem; background: #f6f8fa; border: 1px solid #e1e4e8; }
+    .btn { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Iniciar sesión con Google</h1>
+
+  <!-- Inicialización del flujo -->
+  <div id="g_id_onload"
+       data-client_id="917071888555.apps.googleusercontent.com"
+       data-context="signin"
+       data-callback="onCredentialResponse"
+       data-auto_prompt="false">
+  </div>
+
+  <!-- Botón de Google -->
+  <div class="btn g_id_signin"
+       data-type="standard"
+       data-shape="rectangular"
+       data-theme="outline"
+       data-text="signin_with"
+       data-size="large"
+       data-logo_alignment="left">
+  </div>
+
+  <!-- Manejo del token (JWT) devuelto por Google -->
+  <div id="user">Aún no autenticado.</div>
+
+  <script>
+    // Callback que recibe el credential (JWT) de Google
+    function onCredentialResponse(response) {
+      // response.credential es un JWT. En producción, envíalo a tu backend para validarlo.
+      const jwt = response.credential;
+
+      // Decodificación rápida del payload (solo demostración; no es validación)
+      const payload = JSON.parse(atob(jwt.split('.')[1]));
+      const name = payload.name || payload.email || 'Usuario';
+      const picture = payload.picture;
+
+      document.getElementById('user').innerHTML = `
+        <strong>Autenticado:</strong> ${name}<br>
+        ${picture ? `<img src="${picture}" alt="avatar" width="64" height="64">` : ''}
+        <br><small>Este JWT debe verificarse en tu servidor.</small>
+      `;
+    }
+  </script>
+</body>
+</html>
