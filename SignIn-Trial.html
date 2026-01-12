@@ -4,6 +4,53 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FAES Page - Login con Firebase</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #f0f4f8, #d9e2ec);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #333;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 2rem;
+      color: #2c3e50;
+    }
+
+    button {
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #357ae8;
+    }
+
+    #user {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    #user img {
+      margin-top: 10px;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+  </style>
 </head>
 <body>
   <h1>Login con Google usando Firebase</h1>
@@ -11,12 +58,10 @@
   <div id="user">Aún no autenticado.</div>
 
   <script type="module">
-    // Importa las funciones necesarias del SDK
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-    // Configuración de tu proyecto Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAOmXcJaujzmMwmHDIbCOUzTh-dlFQKdIA",
       authDomain: "faes-page.firebaseapp.com",
@@ -27,15 +72,11 @@
       measurementId: "G-PVR2V1FQ33"
     };
 
-    // Inicializa Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const auth = getAuth(app);
-
-    // Configura el proveedor de Google
     const provider = new GoogleAuthProvider();
 
-    // Evento del botón de login
     document.getElementById("login").addEventListener("click", async () => {
       try {
         const result = await signInWithPopup(auth, provider);
