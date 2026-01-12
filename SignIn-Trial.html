@@ -1,1 +1,55 @@
-Espere...
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FAES Page - Login con Firebase</title>
+</head>
+<body>
+  <h1>Login con Google usando Firebase</h1>
+  <button id="login">Acceder con Google</button>
+  <div id="user">Aún no autenticado.</div>
+
+  <script type="module">
+    // Importa las funciones necesarias del SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+    // Configuración de tu proyecto Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOmXcJaujzmMwmHDIbCOUzTh-dlFQKdIA",
+      authDomain: "faes-page.firebaseapp.com",
+      projectId: "faes-page",
+      storageBucket: "faes-page.firebasestorage.app",
+      messagingSenderId: "880596540892",
+      appId: "1:880596540892:web:f606b56a7d341a0e514319",
+      measurementId: "G-PVR2V1FQ33"
+    };
+
+    // Inicializa Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+
+    // Configura el proveedor de Google
+    const provider = new GoogleAuthProvider();
+
+    // Evento del botón de login
+    document.getElementById("login").addEventListener("click", async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        document.getElementById("user").innerHTML = `
+          <strong>Autenticado:</strong> ${user.displayName}<br>
+          <img src="${user.photoURL}" alt="avatar" width="64" height="64"><br>
+          <small>Email: ${user.email}</small>
+        `;
+      } catch (error) {
+        console.error("Error en login:", error);
+        document.getElementById("user").innerText = "Error al iniciar sesión.";
+      }
+    });
+  </script>
+</body>
+</html>
