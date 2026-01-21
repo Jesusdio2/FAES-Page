@@ -14,12 +14,15 @@ body {
   font-family: monospace;
   text-align: center;
   text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
-  font-size: 18px;
+  font-size: 16px; /* más estándar y compacto */
 }
 
 /* El main se expande y empuja el footer hacia abajo */
 main {
   flex: 1;
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
 }
 
 /* ===========================
@@ -37,7 +40,7 @@ ul.menu-row {
   padding: 0;
   display: flex;
   justify-content: center;
-  gap: 30px;
+  gap: 20px; /* menos espacio entre items */
 }
 
 ul.menu-row li a {
@@ -55,10 +58,13 @@ ul.menu-row li a:hover {
 
 /* Icono de login */
 .login-icon {
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
+  width: 24px;       /* tamaño más compacto */
+  height: 24px;
+  object-fit: cover; /* recorta la imagen para que llene el contenedor */
   border-radius: 50%;
+  border: 1px solid #0f0;  /* borde verde */
+  background-color: #000;  /* fondo por si la imagen tiene transparencia */
+  cursor: pointer;
 }
 
 .menu-row-right {
@@ -66,21 +72,12 @@ ul.menu-row li a:hover {
   position: relative;
 }
 
-.login-icon {
-  width: 32px;
-  height: 32px;
-  object-fit: cover;       /* recorta la imagen para que llene el contenedor */
-  border-radius: 50%;      /* hace que sea circular */
-  border: 1px solid #0f0;  /* opcional: borde verde para destacar */
-  background-color: #000;  /* fondo por si la imagen tiene transparencia */
-}
-
 /* Menú desplegable */
 .dropdown {
   display: none;
   position: absolute;
   right: 0;
-  top: 40px;
+  top: 35px; /* ajustado para icono más pequeño */
   background: #111;
   color: #0f0;
   border: 1px solid #0f0;
@@ -95,8 +92,8 @@ ul.menu-row li a:hover {
   color: #0f0;
   font-family: monospace;
   font-size: 14px;
-  padding: 8px 12px;
-  margin: 5px 0;
+  padding: 6px 10px;
+  margin: 4px 0;
   border-radius: 4px;
   cursor: pointer;
   transition: background 0.3s ease, color 0.3s ease;
@@ -108,20 +105,19 @@ ul.menu-row li a:hover {
   text-shadow: 0 0 5px #0ff;
 }
 
-
 /* ===========================
    Contenido
    =========================== */
 h1 {
-  margin-top: 50px;
-  font-size: 2em;
+  margin-top: 30px;
+  font-size: 1.5em; /* más compacto */
 }
 
 section {
-  margin: 40px auto;
-  max-width: 1200px;
+  margin: 30px auto;
+  max-width: 900px;
   background-color: #1a1a1a;
-  padding: 20px;
+  padding: 15px;
   border-radius: 8px;
   border: 1px solid #0f0;
   animation: neon-glow 2s infinite alternate;
@@ -132,7 +128,7 @@ section {
    =========================== */
 .stream-container {
   display: flex;
-  gap: 20px;
+  gap: 15px;
   align-items: flex-start;
   justify-content: center;
   flex-wrap: wrap;
@@ -158,8 +154,8 @@ section {
 
 .chat-box {
   flex: 2;
-  min-width: 300px;
-  height: 500px;
+  min-width: 250px;
+  height: 400px;
   position: relative;
   border: 2px solid #0f0;
   border-radius: 8px;
@@ -189,9 +185,10 @@ section {
    Footer siempre al fondo
    =========================== */
 footer {
-  padding: 20px;
+  padding: 15px;
   background-color: #2e2e2e;
   border-top: 2px solid #0f0;
+  font-size: 14px;
 }
 
 /* ===========================
@@ -200,7 +197,7 @@ footer {
 @media (max-width: 800px) {
   section {
     max-width: 95%;
-    padding: 15px;
+    padding: 12px;
   }
 
   .stream-container {
@@ -213,17 +210,17 @@ footer {
   }
 
   .chat-box {
-    height: 400px;
+    height: 300px;
   }
 
   body {
-    font-size: 16px;
+    font-size: 14px;
   }
 }
 
 @media (max-width: 600px) {
   ul.menu-row {
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
   }
 }
