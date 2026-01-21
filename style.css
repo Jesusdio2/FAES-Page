@@ -14,7 +14,7 @@ body {
   font-family: monospace;
   text-align: center;
   text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
-  font-size: 16px; /* más estándar y compacto */
+  font-size: 16px;
 }
 
 /* El main se expande y empuja el footer hacia abajo */
@@ -30,7 +30,7 @@ main {
    =========================== */
 nav.menu-container {
   background-color: #2e2e2e;
-  padding: 10px 0;
+  padding: 8px 0;
   border-bottom: 2px solid #0f0;
 }
 
@@ -40,7 +40,9 @@ ul.menu-row {
   padding: 0;
   display: flex;
   justify-content: center;
-  gap: 20px; /* menos espacio entre items */
+  align-items: center;
+  gap: 15px;
+  font-size: 14px;
 }
 
 ul.menu-row li a {
@@ -58,12 +60,12 @@ ul.menu-row li a:hover {
 
 /* Icono de login */
 .login-icon {
-  width: 24px;       /* tamaño más compacto */
-  height: 24px;
-  object-fit: cover; /* recorta la imagen para que llene el contenedor */
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
   border-radius: 50%;
-  border: 1px solid #0f0;  /* borde verde */
-  background-color: #000;  /* fondo por si la imagen tiene transparencia */
+  border: 1px solid #0f0;
+  background-color: #000;
   cursor: pointer;
 }
 
@@ -77,13 +79,14 @@ ul.menu-row li a:hover {
   display: none;
   position: absolute;
   right: 0;
-  top: 35px; /* ajustado para icono más pequeño */
+  top: 30px;
   background: #111;
   color: #0f0;
   border: 1px solid #0f0;
   border-radius: 4px;
   padding: 5px;
   z-index: 100;
+  font-size: 13px;
 }
 
 .dropdown button {
@@ -91,7 +94,7 @@ ul.menu-row li a:hover {
   border: 1px solid #0f0;
   color: #0f0;
   font-family: monospace;
-  font-size: 14px;
+  font-size: 13px;
   padding: 6px 10px;
   margin: 4px 0;
   border-radius: 4px;
@@ -110,7 +113,7 @@ ul.menu-row li a:hover {
    =========================== */
 h1 {
   margin-top: 30px;
-  font-size: 1.5em; /* más compacto */
+  font-size: 1.5em;
 }
 
 section {
