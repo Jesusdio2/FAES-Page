@@ -9,6 +9,24 @@
   <title>FAES</title>
   <link rel="icon" href="res/icon.png">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Ejemplo de estilo para el icono */
+    .login-icon {
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+    .menu-row {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 15px;
+    }
+    .menu-row-right {
+      margin-left: auto; /* empuja el icono a la derecha */
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -16,6 +34,10 @@
       <ul class="menu-row">
         <li><a href="https://www.youtube.com/@FAESWSPVZ191" target="_blank">YouTube</a></li>
         <li><a href="https://x.com/FAESWSPVZ191" target="_blank">X</a></li>
+        <!-- Icono de login a la derecha -->
+        <li class="menu-row-right">
+          <img id="loginIcon" src="res/user.png" alt="Login" class="login-icon">
+        </li>
       </ul>
     </nav>
   </header>
@@ -23,17 +45,6 @@
   <main>
     <h1>Bienvenido a FAES</h1>
     <p>Este sitio está en construcción.</p>
-
-    <!-- Botones de login -->
-    <button id="loginGoogle">Iniciar sesión con Google</button>
-    <button id="logout">Cerrar sesión</button>
-
-    <!-- Formulario Email/Password -->
-    <h2>Login con Email</h2>
-    <input type="email" id="email" placeholder="Correo">
-    <input type="password" id="password" placeholder="Contraseña">
-    <button id="loginEmail">Entrar</button>
-    <button id="registerEmail">Registrarse</button>
 
     <!-- Estado del usuario -->
     <p id="userInfo"></p>
@@ -47,9 +58,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, 
-             signOut, createUserWithEmailAndPassword, 
-             signInWithEmailAndPassword, onAuthStateChanged } 
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } 
     from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
     // Configuración de tu proyecto Firebase
@@ -71,44 +80,26 @@
     // Proveedor Google
     const provider = new GoogleAuthProvider();
 
-    // Botón Google
-    document.getElementById("loginGoogle").addEventListener("click", async () => {
-      try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        document.getElementById("userInfo").textContent = `Hola, ${user.displayName}`;
-      } catch (error) {
-        console.error(error);
-      }
-    });
+    // Icono de login
+    const loginIcon = document.getElementById("loginIcon");
 
-    // Botón Logout
-    document.getElementById("logout").addEventListener("click", async () => {
-      await signOut(auth);
-      document.getElementById("userInfo").textContent = "Sesión cerrada.";
-    });
-
-    // Email/Password Login
-    document.getElementById("loginEmail").addEventListener("click", async () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        document.getElementById("userInfo").textContent = `Hola, ${userCredential.user.email}`;
-      } catch (error) {
-        console.error(error);
-      }
-    });
-
-    // Email/Password Registro
-    document.getElementById("registerEmail").addEventListener("click", async () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        document.getElementById("userInfo").textContent = `Cuenta creada: ${userCredential.user.email}`;
-      } catch (error) {
-        console.error(error);
+    loginIcon.addEventListener("click", async () => {
+      const user = auth.currentUser;
+      if (user) {
+        // Si ya está logueado, cerrar sesión
+        await signOut(auth);
+        document.getElementById("userInfo").textContent = "Sesión cerrada.";
+        loginIcon.src = "res/user.png"; // vuelve al icono por defecto
+      } else {
+        // Si no está logueado, iniciar sesión con Google
+        try {
+          const result = await signInWithPopup(auth, provider);
+          const user = result.user;
+          document.getElementById("userInfo").textContent = `Hola, ${user.displayName}`;
+          loginIcon.src = user.photoURL || "res/user.png"; // muestra foto de perfil si existe
+        } catch (error) {
+          console.error(error);
+        }
       }
     });
 
@@ -116,8 +107,10 @@
     onAuthStateChanged(auth, (user) => {
       if (user) {
         document.getElementById("userInfo").textContent = `Conectado: ${user.email}`;
+        loginIcon.src = user.photoURL || "res/user.png";
       } else {
         document.getElementById("userInfo").textContent = "No hay sesión activa.";
+        loginIcon.src = "res/user.png";
       }
     });
   </script>
