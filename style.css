@@ -66,6 +66,15 @@ ul.menu-row li a:hover {
   position: relative;
 }
 
+.login-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;       /* recorta la imagen para que llene el contenedor */
+  border-radius: 50%;      /* hace que sea circular */
+  border: 1px solid #0f0;  /* opcional: borde verde para destacar */
+  background-color: #000;  /* fondo por si la imagen tiene transparencia */
+}
+
 /* Menú desplegable */
 .dropdown {
   display: none;
@@ -81,19 +90,24 @@ ul.menu-row li a:hover {
 }
 
 .dropdown button {
-  background: none;
-  border: none;
+  background-color: #1a1a1a;
+  border: 1px solid #0f0;
   color: #0f0;
+  font-family: monospace;
+  font-size: 14px;
+  padding: 8px 12px;
+  margin: 5px 0;
+  border-radius: 4px;
   cursor: pointer;
-  padding: 5px 10px;
-  width: 100%;
-  text-align: left;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .dropdown button:hover {
-  background: #0f0;
+  background-color: #0f0;
   color: #111;
+  text-shadow: 0 0 5px #0ff;
 }
+
 
 /* ===========================
    Contenido
