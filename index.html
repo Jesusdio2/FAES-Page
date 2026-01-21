@@ -10,7 +10,6 @@
   <link rel="icon" href="res/icon.png">
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Ejemplo de estilo para el icono */
     .login-icon {
       width: 32px;
       height: 32px;
@@ -24,7 +23,34 @@
       gap: 15px;
     }
     .menu-row-right {
-      margin-left: auto; /* empuja el icono a la derecha */
+      margin-left: auto;
+      position: relative;
+    }
+    /* Estilo para el menú desplegable */
+    .dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 40px;
+      background: #111;
+      color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 4px;
+      padding: 5px;
+      z-index: 100;
+    }
+    .dropdown button {
+      background: none;
+      border: none;
+      color: #0f0;
+      cursor: pointer;
+      padding: 5px 10px;
+      width: 100%;
+      text-align: left;
+    }
+    .dropdown button:hover {
+      background: #0f0;
+      color: #111;
     }
   </style>
 </head>
@@ -36,7 +62,11 @@
         <li><a href="https://x.com/FAESWSPVZ191" target="_blank">X</a></li>
         <!-- Icono de login a la derecha -->
         <li class="menu-row-right">
-          <img id="loginIcon" src="res/user.png" alt="Login" class="login-icon">
+          <img id="loginIcon" src="res/profile.png" alt="Login" class="login-icon">
+          <div id="dropdownMenu" class="dropdown">
+            <button id="loginBtn">Iniciar sesión con Google</button>
+            <button id="logoutBtn">Cerrar sesión</button>
+          </div>
         </li>
       </ul>
     </nav>
@@ -45,8 +75,6 @@
   <main>
     <h1>Bienvenido a FAES</h1>
     <p>Este sitio está en construcción.</p>
-
-    <!-- Estado del usuario -->
     <p id="userInfo"></p>
   </main>
 
@@ -76,41 +104,49 @@
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const auth = getAuth(app);
-
-    // Proveedor Google
     const provider = new GoogleAuthProvider();
 
-    // Icono de login
+    // Elementos
     const loginIcon = document.getElementById("loginIcon");
+    const dropdownMenu = document.getElementById("dropdownMenu");
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const userInfo = document.getElementById("userInfo");
 
-    loginIcon.addEventListener("click", async () => {
-      const user = auth.currentUser;
-      if (user) {
-        // Si ya está logueado, cerrar sesión
-        await signOut(auth);
-        document.getElementById("userInfo").textContent = "Sesión cerrada.";
-        loginIcon.src = "res/user.png"; // vuelve al icono por defecto
-      } else {
-        // Si no está logueado, iniciar sesión con Google
-        try {
-          const result = await signInWithPopup(auth, provider);
-          const user = result.user;
-          document.getElementById("userInfo").textContent = `Hola, ${user.displayName}`;
-          loginIcon.src = user.photoURL || "res/user.png"; // muestra foto de perfil si existe
-        } catch (error) {
-          console.error(error);
-        }
+    // Mostrar/ocultar menú al hacer clic en el icono
+    loginIcon.addEventListener("click", () => {
+      dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
+    });
+
+    // Iniciar sesión
+    loginBtn.addEventListener("click", async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        userInfo.textContent = `Hola, ${user.displayName}`;
+        loginIcon.src = user.photoURL || "res/profile.png";
+        dropdownMenu.style.display = "none";
+      } catch (error) {
+        console.error(error);
       }
+    });
+
+    // Cerrar sesión
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      userInfo.textContent = "Sesión cerrada.";
+      loginIcon.src = "res/profile.png";
+      dropdownMenu.style.display = "none";
     });
 
     // Detectar cambios de sesión
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        document.getElementById("userInfo").textContent = `Conectado: ${user.email}`;
-        loginIcon.src = user.photoURL || "res/user.png";
+        userInfo.textContent = `Conectado: ${user.email}`;
+        loginIcon.src = user.photoURL || "res/profile.png";
       } else {
-        document.getElementById("userInfo").textContent = "No hay sesión activa.";
-        loginIcon.src = "res/user.png";
+        userInfo.textContent = "No hay sesión activa.";
+        loginIcon.src = "res/profile.png";
       }
     });
   </script>
