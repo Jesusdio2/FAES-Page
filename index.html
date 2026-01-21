@@ -24,17 +24,102 @@
     <h1>Bienvenido a FAES</h1>
     <p>Este sitio está en construcción.</p>
 
-    <!-- Usuarios registrados -->
-    <section>
-      <h2>Usuarios registrados</h2>
-      <div id="data-container">Cargando...</div>
-    </section>
+    <!-- Botones de login -->
+    <button id="loginGoogle">Iniciar sesión con Google</button>
+    <button id="logout">Cerrar sesión</button>
+
+    <!-- Formulario Email/Password -->
+    <h2>Login con Email</h2>
+    <input type="email" id="email" placeholder="Correo">
+    <input type="password" id="password" placeholder="Contraseña">
+    <button id="loginEmail">Entrar</button>
+    <button id="registerEmail">Registrarse</button>
+
+    <!-- Estado del usuario -->
+    <p id="userInfo"></p>
   </main>
 
   <footer>
     <p>&copy; 2026 Francisco — Proyecto bajo Licencia MIT.</p>
   </footer>
 
-  <script type="module" src="app.js"></script>
+  <!-- Firebase con ES Modules -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, 
+             signOut, createUserWithEmailAndPassword, 
+             signInWithEmailAndPassword, onAuthStateChanged } 
+    from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+
+    // Configuración de tu proyecto Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOmXcJaujzmMwmHDIbCOUzTh-dlFQKdIA",
+      authDomain: "faes-page.firebaseapp.com",
+      projectId: "faes-page",
+      storageBucket: "faes-page.firebasestorage.app",
+      messagingSenderId: "880596540892",
+      appId: "1:880596540892:web:f606b56a7d341a0e514319",
+      measurementId: "G-PVR2V1FQ33"
+    };
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+
+    // Proveedor Google
+    const provider = new GoogleAuthProvider();
+
+    // Botón Google
+    document.getElementById("loginGoogle").addEventListener("click", async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        document.getElementById("userInfo").textContent = `Hola, ${user.displayName}`;
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    // Botón Logout
+    document.getElementById("logout").addEventListener("click", async () => {
+      await signOut(auth);
+      document.getElementById("userInfo").textContent = "Sesión cerrada.";
+    });
+
+    // Email/Password Login
+    document.getElementById("loginEmail").addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        document.getElementById("userInfo").textContent = `Hola, ${userCredential.user.email}`;
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    // Email/Password Registro
+    document.getElementById("registerEmail").addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        document.getElementById("userInfo").textContent = `Cuenta creada: ${userCredential.user.email}`;
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    // Detectar cambios de sesión
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("userInfo").textContent = `Conectado: ${user.email}`;
+      } else {
+        document.getElementById("userInfo").textContent = "No hay sesión activa.";
+      }
+    });
+  </script>
 </body>
 </html>
