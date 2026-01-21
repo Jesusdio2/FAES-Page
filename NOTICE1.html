@@ -3,29 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FAES - Página en Blanco con Login</title>
+  <meta name="description" content="Sitio oficial de FAES">
+  <meta name="keywords" content="FAES, Jesusdio2, Francisco7463">
+  <meta name="google-site-verification" content="r54yzy4u2dwtvikmswbGXBFNxWjNn1n05VTyVe1vjp8" />
+  <title>Falta Un Titulo.</title>
   <link rel="icon" href="res/icon.png">
   <link rel="stylesheet" href="style.css">
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #000; /* Fondo negro estilo retro */
-      color: #0f0; /* Texto verde estilo terminal */
-    }
-    header, footer {
-      padding: 10px;
-      text-align: center;
-      border-bottom: 1px solid #0f0;
-    }
-    footer {
-      border-top: 1px solid #0f0;
-      border-bottom: none;
-    }
-    main {
-      padding: 20px;
-      min-height: 70vh;
-    }
     .login-icon {
       width: 32px;
       height: 32px;
@@ -42,6 +26,7 @@
       margin-left: auto;
       position: relative;
     }
+    /* Estilo para el menú desplegable */
     .dropdown {
       display: none;
       position: absolute;
@@ -73,7 +58,9 @@
   <header>
     <nav class="menu-container">
       <ul class="menu-row">
-        <!-- Aquí puedes poner enlaces si quieres -->
+        <li><a href="https://www.youtube.com/@FAESWSPVZ191" target="_blank">YouTube</a></li>
+        <li><a href="https://x.com/FAESWSPVZ191" target="_blank">X</a></li>
+        <!-- Icono de login a la derecha -->
         <li class="menu-row-right">
           <img id="loginIcon" src="res/profile.png" alt="Login" class="login-icon">
           <div id="dropdownMenu" class="dropdown">
@@ -86,20 +73,17 @@
   </header>
 
   <main>
-    <!-- Aquí puedes insertar tu contenido libremente -->
-    <p id="userInfo"></p>
+    <h1>Falta Texto Que Escribir.</h1>
   </main>
-
-  <footer>
-    <p>&copy; 2026 Francisco — Proyecto bajo Licencia MIT.</p>
-  </footer>
 
   <!-- Firebase con ES Modules -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } 
     from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
+    // Configuración de tu proyecto Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAOmXcJaujzmMwmHDIbCOUzTh-dlFQKdIA",
       authDomain: "faes-page.firebaseapp.com",
@@ -110,20 +94,25 @@
       measurementId: "G-PVR2V1FQ33"
     };
 
+    // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
+    // Elementos
     const loginIcon = document.getElementById("loginIcon");
     const dropdownMenu = document.getElementById("dropdownMenu");
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const userInfo = document.getElementById("userInfo");
 
+    // Mostrar/ocultar menú al hacer clic en el icono
     loginIcon.addEventListener("click", () => {
       dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
     });
 
+    // Iniciar sesión
     loginBtn.addEventListener("click", async () => {
       try {
         const result = await signInWithPopup(auth, provider);
@@ -136,6 +125,7 @@
       }
     });
 
+    // Cerrar sesión
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
       userInfo.textContent = "Sesión cerrada.";
@@ -143,6 +133,7 @@
       dropdownMenu.style.display = "none";
     });
 
+    // Detectar cambios de sesión
     onAuthStateChanged(auth, (user) => {
       if (user) {
         userInfo.textContent = `Conectado: ${user.email}`;
