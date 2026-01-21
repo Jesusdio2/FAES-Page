@@ -12,7 +12,7 @@ Made with [contrib.rocks](https://contrib.rocks).
 
 ## 🚀 Description
 This is the official site of **FAES**, currently under construction.
-The project uses **HTML, CSS and JavaScript** with connection to **Supabase** to display registered users.
+The project uses **HTML, CSS and JavaScript** with connection to **Firebase**.
 
 ## 🌐 Demo
 👉 [Visit the page here](https://jesusdio2.github.io/FAES-Page/)
@@ -21,7 +21,7 @@ The project uses **HTML, CSS and JavaScript** with connection to **Supabase** to
 - HTML5
 - CSS3
 - JavaScript (ES Modules)
-- Supabase (Database and authentication)
+- Firebase (Authentication)
 
 ## ⚙️ Local Installation
 If you want to run the project on your machine:
