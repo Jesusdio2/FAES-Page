@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAES - Página en Blanco con Login</title>
+  <link rel="icon" href="res/icon.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #000; /* Fondo negro estilo retro */
+      color: #0f0; /* Texto verde estilo terminal */
+    }
+    header, footer {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #0f0;
+    }
+    footer {
+      border-top: 1px solid #0f0;
+      border-bottom: none;
+    }
+    main {
+      padding: 20px;
+      min-height: 70vh;
+    }
+    .login-icon {
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+    .menu-row {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 15px;
+    }
+    .menu-row-right {
+      margin-left: auto;
+      position: relative;
+    }
+    .dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 40px;
+      background: #111;
+      color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 4px;
+      padding: 5px;
+      z-index: 100;
+    }
+    .dropdown button {
+      background: none;
+      border: none;
+      color: #0f0;
+      cursor: pointer;
+      padding: 5px 10px;
+      width: 100%;
+      text-align: left;
+    }
+    .dropdown button:hover {
+      background: #0f0;
+      color: #111;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="menu-container">
+      <ul class="menu-row">
+        <!-- Aquí puedes poner enlaces si quieres -->
+        <li class="menu-row-right">
+          <img id="loginIcon" src="res/profile.png" alt="Login" class="login-icon">
+          <div id="dropdownMenu" class="dropdown">
+            <button id="loginBtn">Iniciar sesión con Google</button>
+            <button id="logoutBtn">Cerrar sesión</button>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Aquí puedes insertar tu contenido libremente -->
+    <p id="userInfo"></p>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Francisco — Proyecto bajo Licencia MIT.</p>
+  </footer>
+
+  <!-- Firebase con ES Modules -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } 
+    from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOmXcJaujzmMwmHDIbCOUzTh-dlFQKdIA",
+      authDomain: "faes-page.firebaseapp.com",
+      projectId: "faes-page",
+      storageBucket: "faes-page.firebasestorage.app",
+      messagingSenderId: "880596540892",
+      appId: "1:880596540892:web:f606b56a7d341a0e514319",
+      measurementId: "G-PVR2V1FQ33"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    const loginIcon = document.getElementById("loginIcon");
+    const dropdownMenu = document.getElementById("dropdownMenu");
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const userInfo = document.getElementById("userInfo");
+
+    loginIcon.addEventListener("click", () => {
+      dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
+    });
+
+    loginBtn.addEventListener("click", async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        userInfo.textContent = `Hola, ${user.displayName}`;
+        loginIcon.src = user.photoURL || "res/profile.png";
+        dropdownMenu.style.display = "none";
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      userInfo.textContent = "Sesión cerrada.";
+      loginIcon.src = "res/profile.png";
+      dropdownMenu.style.display = "none";
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        userInfo.textContent = `Conectado: ${user.email}`;
+        loginIcon.src = user.photoURL || "res/profile.png";
+      } else {
+        userInfo.textContent = "No hay sesión activa.";
+        loginIcon.src = "res/profile.png";
+      }
+    });
+  </script>
+</body>
+</html>
