@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Sitio oficial de FAES">
+  <meta name="description" content="Sitio oficial de FAES / Official FAES Site">
   <meta name="keywords" content="FAES, Jesusdio2, Francisco7463">
   <meta name="google-site-verification" content="r54yzy4u2dwtvikmswbGXBFNxWjNn1n05VTyVe1vjp8" />
   <title>FAES</title>
@@ -20,8 +20,8 @@
         <li class="menu-row-right">
           <img id="loginIcon" src="res/profile.png" alt="Login" class="login-icon">
           <div id="dropdownMenu" class="dropdown">
-            <button id="loginBtn">Iniciar sesión con Google</button>
-            <button id="logoutBtn">Cerrar sesión</button>
+            <button id="loginBtn"></button>
+            <button id="logoutBtn"></button>
           </div>
         </li>
       </ul>
@@ -29,18 +29,18 @@
   </header>
 
   <main>
-   <h1>Bienvenido a FAES</h1>
+   <h1 id="title"></h1>
    <p id="userInfo"></p>
 
    <!-- Reproductor de sonido -->
    <audio controls>
      <source src="https://raw.githubusercontent.com/Jesusdio2/CultraOS/main/initramfs/usr/share/sounds/pixiedust.wav" type="audio/wav">
-     Tu navegador no soporta audio WAV.
+     Tu navegador / Your browser does not support WAV audio.
    </audio>
  </main>
 
   <footer>
-    <p>&copy; 2026 Francisco — Proyecto bajo Licencia MIT.</p>
+    <p id="footer"></p>
   </footer>
 
   <!-- Firebase con ES Modules -->
@@ -67,6 +67,39 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
+    // Traducciones
+    const translations = {
+      es: {
+        title: "Bienvenido a FAES",
+        login: "Iniciar sesión con Google",
+        logout: "Cerrar sesión",
+        connected: "Conectado",
+        noSession: "No hay sesión activa.",
+        closed: "Sesión cerrada.",
+        footer: "© 2026 Francisco — Proyecto bajo Licencia MIT."
+      },
+      en: {
+        title: "Welcome to FAES",
+        login: "Sign in with Google",
+        logout: "Sign out",
+        connected: "Connected",
+        noSession: "No active session.",
+        closed: "Session closed.",
+        footer: "© 2026 Francisco — Project under MIT License."
+      }
+    };
+
+    // Detectar idioma del navegador
+    const userLang = navigator.language || navigator.userLanguage;
+    const lang = userLang.startsWith("es") ? "es" : "en";
+    const t = translations[lang];
+
+    // Aplicar traducciones iniciales
+    document.getElementById("title").textContent = t.title;
+    document.getElementById("loginBtn").textContent = t.login;
+    document.getElementById("logoutBtn").textContent = t.logout;
+    document.getElementById("footer").textContent = t.footer;
+
     // Elementos
     const loginIcon = document.getElementById("loginIcon");
     const dropdownMenu = document.getElementById("dropdownMenu");
@@ -84,7 +117,7 @@
       try {
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
-        userInfo.textContent = `Hola, ${user.displayName}`;
+        userInfo.textContent = `${lang === "es" ? "Hola" : "Hello"}, ${user.displayName}`;
         loginIcon.src = user.photoURL || "res/profile.png";
         dropdownMenu.style.display = "none";
       } catch (error) {
@@ -95,7 +128,7 @@
     // Cerrar sesión
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
-      userInfo.textContent = "Sesión cerrada.";
+      userInfo.textContent = t.closed;
       loginIcon.src = "res/profile.png";
       dropdownMenu.style.display = "none";
     });
@@ -103,10 +136,10 @@
     // Detectar cambios de sesión
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        userInfo.textContent = `Conectado: ${user.email}`;
+        userInfo.textContent = `${t.connected}: ${user.email}`;
         loginIcon.src = user.photoURL || "res/profile.png";
       } else {
-        userInfo.textContent = "No hay sesión activa.";
+        userInfo.textContent = t.noSession;
         loginIcon.src = "res/profile.png";
       }
     });
