@@ -117,7 +117,9 @@
       try {
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
-        userInfo.textContent = `${lang === "es" ? "Hola" : "Hello"}, ${user.displayName}`;
+        // Tomar solo el primer nombre
+        const firstName = user.displayName ? user.displayName.split(" ")[0] : "";
+        userInfo.textContent = `${lang === "es" ? "Hola" : "Hello"}, ${firstName}`;
         loginIcon.src = user.photoURL || "res/profile.png";
         dropdownMenu.style.display = "none";
       } catch (error) {
@@ -136,7 +138,8 @@
     // Detectar cambios de sesión
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        userInfo.textContent = `${t.connected}: ${user.email}`;
+        const firstName = user.displayName ? user.displayName.split(" ")[0] : "";
+        userInfo.textContent = `${t.connected}: ${firstName}`;
         loginIcon.src = user.photoURL || "res/profile.png";
       } else {
         userInfo.textContent = t.noSession;
