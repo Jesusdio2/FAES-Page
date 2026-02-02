@@ -3,71 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Sitio oficial de FAES / Official FAES Site">
-  <meta name="keywords" content="FAES, Jesusdio2, Francisco7463">
-  <meta name="google-site-verification" content="r54yzy4u2dwtvikmswbGXBFNxWjNn1n05VTyVe1vjp8" />
   <title>FAES</title>
   <link rel="icon" href="res/icon.png">
   <!-- Materialize CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
   <!-- Íconos de Google -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <!-- Tu estilo retro -->
-  <link rel="stylesheet" href="style.css">
+  <!-- Estilo personalizado -->
+  <style>
+    body {
+      background-color: #111; /* gris oscuro */
+      color: #0f0; /* texto verde neón */
+      font-family: monospace;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    main {
+      flex: 1;
+      padding: 20px;
+    }
+    nav, footer {
+      background-color: #2e2e2e; /* gris oscuro */
+      border: 2px solid #0f0; /* contorno verde */
+      text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+    }
+    nav a, footer p {
+      color: #0f0 !important;
+    }
+    nav a:hover {
+      color: #00ffff !important; /* relleno cyan */
+      text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+    }
+    .btn-neon {
+      background-color: #00ffff !important; /* relleno cyan */
+      border: 2px solid #0f0; /* contorno verde */
+      color: #111 !important; /* texto oscuro */
+      text-shadow: 0 0 5px #0f0;
+    }
+    .btn-neon:hover {
+      background-color: #0f0 !important; /* verde neón al hover */
+      color: #111 !important;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    audio {
+      border: 2px solid #0f0;
+      background-color: #2e2e2e;
+      border-radius: 8px;
+      padding: 5px;
+      width: 100%;
+    }
+  </style>
 </head>
 <body>
-
   <!-- Barra de navegación -->
-  <header>
-    <nav class="menu-container">
-      <div class="nav-wrapper">
-        <a href="#!" class="brand-logo">FAES</a>
-        <ul class="menu-row right">
-          <li><a href="https://www.youtube.com/@FAESWSPVZ191" target="_blank">YouTube</a></li>
-          <li><a href="https://x.com/FAESWSPVZ191" target="_blank">X</a></li>
-          <li class="menu-row-right">
-            <img id="loginIcon" src="res/profile.png" alt="Login" class="login-icon">
-            <div id="dropdownMenu" class="dropdown">
-              <button id="loginBtn"></button>
-              <button id="logoutBtn"></button>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </nav>
-  </header>
+  <nav>
+    <div class="nav-wrapper">
+      <a href="#!" class="brand-logo">FAES</a>
+      <ul class="right">
+        <li><a href="https://www.youtube.com/@FAESWSPVZ191" target="_blank">YouTube</a></li>
+        <li><a href="https://x.com/FAESWSPVZ191" target="_blank">X</a></li>
+        <li><a href="#!" id="loginBtn" class="btn btn-neon">Login</a></li>
+        <li><a href="#!" id="logoutBtn" class="btn btn-neon">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
 
   <!-- Contenido principal -->
-  <main>
-    <h1 id="title"></h1>
-    <p id="userInfo"></p>
-
-    <!-- Reproductor de sonido -->
-    <section>
-      <audio controls>
-        <source src="https://raw.githubusercontent.com/Jesusdio2/CultraOS/main/initramfs/usr/share/sounds/pixiedust.wav" type="audio/wav">
-        Tu navegador / Your browser does not support WAV audio.
-      </audio>
-    </section>
+  <main class="container center-align">
+    <h3 id="title">Bienvenido a FAES</h3>
+    <p id="userInfo">No hay sesión activa.</p>
+    <audio controls>
+      <source src="https://raw.githubusercontent.com/Jesusdio2/CultraOS/main/initramfs/usr/share/sounds/pixiedust.wav" type="audio/wav">
+      Tu navegador no soporta audio WAV.
+    </audio>
   </main>
 
   <!-- Footer siempre abajo -->
-  <footer class="page-footer menu-container">
+  <footer class="page-footer">
     <div class="container center-align">
-      <p id="footer"></p>
+      <p>© 2026 Francisco — Proyecto bajo Licencia MIT.</p>
     </div>
   </footer>
 
   <!-- Materialize JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
-  <!-- Firebase + traducciones -->
+  <!-- Firebase con ES Modules -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } 
     from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
+    // Configuración de tu proyecto Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAOmXcJaujzmMwmHDIbCOUzTh-dlFQKdIA",
       authDomain: "faes-page.firebaseapp.com",
@@ -78,79 +107,41 @@
       measurementId: "G-PVR2V1FQ33"
     };
 
+    // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    const translations = {
-      es: {
-        title: "Bienvenido a FAES",
-        login: "Iniciar sesión con Google",
-        logout: "Cerrar sesión",
-        connected: "Conectado",
-        noSession: "No hay sesión activa.",
-        closed: "Sesión cerrada.",
-        footer: "© 2026 Francisco — Proyecto bajo Licencia MIT."
-      },
-      en: {
-        title: "Welcome to FAES",
-        login: "Sign in with Google",
-        logout: "Sign out",
-        connected: "Connected",
-        noSession: "No active session.",
-        closed: "Session closed.",
-        footer: "© 2026 Francisco — Project under MIT License."
-      }
-    };
-
-    const userLang = navigator.language || navigator.userLanguage;
-    const lang = userLang.startsWith("es") ? "es" : "en";
-    const t = translations[lang];
-
-    document.getElementById("title").textContent = t.title;
-    document.getElementById("loginBtn").textContent = t.login;
-    document.getElementById("logoutBtn").textContent = t.logout;
-    document.getElementById("footer").textContent = t.footer;
-
-    const loginIcon = document.getElementById("loginIcon");
-    const dropdownMenu = document.getElementById("dropdownMenu");
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const userInfo = document.getElementById("userInfo");
 
-    loginIcon.addEventListener("click", () => {
-      dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
-    });
-
+    // Iniciar sesión
     loginBtn.addEventListener("click", async () => {
       try {
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
         const firstName = user.displayName ? user.displayName.split(" ")[0] : "";
-        userInfo.textContent = `${lang === "es" ? "Hola" : "Hello"}, ${firstName}`;
-        loginIcon.src = user.photoURL || "res/profile.png";
-        dropdownMenu.style.display = "none";
+        userInfo.textContent = `Hola, ${firstName}`;
       } catch (error) {
         console.error(error);
       }
     });
 
+    // Cerrar sesión
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
-      userInfo.textContent = t.closed;
-      loginIcon.src = "res/profile.png";
-      dropdownMenu.style.display = "none";
+      userInfo.textContent = "Sesión cerrada.";
     });
 
+    // Detectar cambios de sesión
     onAuthStateChanged(auth, (user) => {
       if (user) {
         const firstName = user.displayName ? user.displayName.split(" ")[0] : "";
-        userInfo.textContent = `${t.connected}: ${firstName}`;
-        loginIcon.src = user.photoURL || "res/profile.png";
+        userInfo.textContent = `Conectado: ${firstName}`;
       } else {
-        userInfo.textContent = t.noSession;
-        loginIcon.src = "res/profile.png";
+        userInfo.textContent = "No hay sesión activa.";
       }
     });
   </script>
