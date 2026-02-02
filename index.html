@@ -8,6 +8,8 @@
 
   <!-- Material Web Components (Material 3) -->
   <script type="module" src="https://esm.run/@material/web/all"></script>
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
   <!-- Paleta personalizada Material 3 -->
   <style>
@@ -38,6 +40,10 @@
       background-color: var(--md-sys-color-surface);
       border: 2px solid var(--md-sys-color-primary);
       padding: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
     }
 
     footer p {
@@ -52,6 +58,13 @@
       padding: 5px;
       width: 100%;
     }
+
+    #userIcon img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid #0f0;
+    }
   </style>
 </head>
 <body>
@@ -62,6 +75,10 @@
     <md-filled-tonal-button href="https://x.com/FAESWSPVZ191" target="_blank">X</md-filled-tonal-button>
     <md-filled-button id="loginBtn">Login</md-filled-button>
     <md-outlined-button id="logoutBtn">Logout</md-outlined-button>
+    <!-- Icono de usuario -->
+    <md-icon-button id="userIcon">
+      <span class="material-icons">account_circle</span>
+    </md-icon-button>
   </header>
 
   <!-- Contenido principal -->
@@ -104,6 +121,7 @@
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const userInfo = document.getElementById("userInfo");
+    const userIcon = document.getElementById("userIcon");
 
     loginBtn.addEventListener("click", async () => {
       try {
@@ -111,6 +129,7 @@
         const user = result.user;
         const firstName = user.displayName ? user.displayName.split(" ")[0] : "";
         userInfo.textContent = `Hola, ${firstName}`;
+        userIcon.innerHTML = `<img src="${user.photoURL || 'res/profile.png'}">`;
       } catch (error) {
         console.error(error);
       }
@@ -119,14 +138,17 @@
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
       userInfo.textContent = "Sesión cerrada.";
+      userIcon.innerHTML = `<span class="material-icons">account_circle</span>`;
     });
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
         const firstName = user.displayName ? user.displayName.split(" ")[0] : "";
         userInfo.textContent = `Conectado: ${firstName}`;
+        userIcon.innerHTML = `<img src="${user.photoURL || 'res/profile.png'}">`;
       } else {
         userInfo.textContent = "No hay sesión activa.";
+        userIcon.innerHTML = `<span class="material-icons">account_circle</span>`;
       }
     });
   </script>
