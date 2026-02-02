@@ -5,71 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FAES</title>
   <link rel="icon" href="res/icon.png">
-  <!-- Materialize CSS -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
-  <!-- Íconos de Google -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <!-- Estilo personalizado -->
+
+  <!-- Material Web Components (Material 3) -->
+  <script type="module" src="https://unpkg.com/@material/web/all.js"></script>
+
+  <!-- Paleta personalizada Material 3 -->
   <style>
+    :root {
+      --md-sys-color-primary: #00ff00;       /* verde neón */
+      --md-sys-color-on-primary: #111;       /* texto oscuro */
+      --md-sys-color-secondary: #00ffff;    /* cyan */
+      --md-sys-color-on-secondary: #111;
+      --md-sys-color-background: #111;      /* gris oscuro */
+      --md-sys-color-surface: #2e2e2e;      /* gris oscuro más claro */
+      --md-sys-color-on-surface: #0f0;      /* texto verde */
+    }
+
     body {
-      background-color: #111; /* gris oscuro */
-      color: #0f0; /* texto verde neón */
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-surface);
       font-family: monospace;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      text-align: center;
       text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
     }
 
     main { flex: 1; padding: 20px; }
 
-    /* Nav y footer */
-    nav.nav-wrapper, footer.page-footer {
-      background-color: #2e2e2e !important;
-      border: 2px solid #0f0;
+    header, footer {
+      background-color: var(--md-sys-color-surface);
+      border: 2px solid var(--md-sys-color-primary);
+      padding: 10px;
     }
 
-    nav a, footer p { color: #0f0 !important; }
-
-    nav a:hover {
-      color: #00ffff !important;
-      text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
-    }
-
-    /* Botones */
-    .btn, .btn-large, .btn-small {
-      background-color: #00ffff !important;
-      border: 2px solid #0f0 !important;
-      color: #111 !important;
-      text-shadow: 0 0 5px #0f0;
-    }
-
-    .btn:hover {
-      background-color: #0f0 !important;
-      color: #111 !important;
-      text-shadow: 0 0 10px #00ffff;
-    }
-
-    /* Tabs personalizados */
-    .tabs .tab a {
-      color: #0f0 !important;
-    }
-    .tabs .tab a:hover {
-      color: #00ffff !important;
-      text-shadow: 0 0 10px #00ffff;
-    }
-    .tabs .tab a.active {
-      color: #0f0 !important;
-      text-shadow: 0 0 10px #0f0;
-    }
-    .tabs .indicator {
-      background-color: #00ffff !important;
-      height: 3px;
+    footer p {
+      margin: 0;
+      color: var(--md-sys-color-primary);
     }
 
     audio {
-      border: 2px solid #0f0;
-      background-color: #2e2e2e;
+      border: 2px solid var(--md-sys-color-primary);
+      background-color: var(--md-sys-color-surface);
       border-radius: 8px;
       padding: 5px;
       width: 100%;
@@ -77,33 +55,17 @@
   </style>
 </head>
 <body>
-  <!-- Barra de navegación -->
-  <nav>
-    <div class="nav-wrapper">
-      <a href="#!" class="brand-logo">FAES</a>
-      <ul class="right">
-        <li><a href="https://www.youtube.com/@FAESWSPVZ191" target="_blank">YouTube</a></li>
-        <li><a href="https://x.com/FAESWSPVZ191" target="_blank">X</a></li>
-        <li><a href="#!" id="loginBtn" class="btn">Login</a></li>
-        <li><a href="#!" id="logoutBtn" class="btn">Logout</a></li>
-      </ul>
-    </div>
-  </nav>
-
-  <!-- Tabs -->
-  <div class="container">
-    <ul id="tabs-demo" class="tabs">
-      <li class="tab col s3"><a href="#test1">Tab 1</a></li>
-      <li class="tab col s3"><a href="#test2">Tab 2</a></li>
-      <li class="tab col s3"><a href="#test3">Tab 3</a></li>
-    </ul>
-    <div id="test1" class="col s12"><p>Contenido del Tab 1</p></div>
-    <div id="test2" class="col s12"><p>Contenido del Tab 2</p></div>
-    <div id="test3" class="col s12"><p>Contenido del Tab 3</p></div>
-  </div>
+  <!-- Barra superior -->
+  <header>
+    <h2>FAES</h2>
+    <md-filled-tonal-button href="https://www.youtube.com/@FAESWSPVZ191" target="_blank">YouTube</md-filled-tonal-button>
+    <md-filled-tonal-button href="https://x.com/FAESWSPVZ191" target="_blank">X</md-filled-tonal-button>
+    <md-filled-button id="loginBtn">Login</md-filled-button>
+    <md-outlined-button id="logoutBtn">Logout</md-outlined-button>
+  </header>
 
   <!-- Contenido principal -->
-  <main class="container center-align">
+  <main>
     <h3 id="title">Bienvenido a FAES</h3>
     <p id="userInfo">No hay sesión activa.</p>
     <audio controls>
@@ -113,20 +75,9 @@
   </main>
 
   <!-- Footer -->
-  <footer class="page-footer">
-    <div class="container center-align">
-      <p>© 2026 Francisco — Proyecto bajo Licencia MIT.</p>
-    </div>
+  <footer>
+    <p>© 2026 Francisco — Proyecto bajo Licencia MIT.</p>
   </footer>
-
-  <!-- Materialize JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      var elems = document.querySelectorAll('.tabs');
-      var instances = M.Tabs.init(elems);
-    });
-  </script>
 
   <!-- Firebase con ES Modules -->
   <script type="module">
