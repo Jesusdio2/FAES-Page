@@ -23,33 +23,48 @@
 
     main { flex: 1; padding: 20px; }
 
-    /* Sobrescribir nav y footer */
+    /* Nav y footer */
     nav.nav-wrapper, footer.page-footer {
-      background-color: #2e2e2e !important; /* gris oscuro */
+      background-color: #2e2e2e !important;
       border: 2px solid #0f0;
     }
 
-    nav a, footer p {
-      color: #0f0 !important;
-    }
+    nav a, footer p { color: #0f0 !important; }
 
     nav a:hover {
       color: #00ffff !important;
       text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
     }
 
-    /* Botones Materialize personalizados */
+    /* Botones */
     .btn, .btn-large, .btn-small {
-      background-color: #00ffff !important; /* cyan */
-      border: 2px solid #0f0 !important;    /* contorno verde */
-      color: #111 !important;               /* texto oscuro */
+      background-color: #00ffff !important;
+      border: 2px solid #0f0 !important;
+      color: #111 !important;
       text-shadow: 0 0 5px #0f0;
     }
 
     .btn:hover {
-      background-color: #0f0 !important; /* verde neón al hover */
+      background-color: #0f0 !important;
       color: #111 !important;
       text-shadow: 0 0 10px #00ffff;
+    }
+
+    /* Tabs personalizados */
+    .tabs .tab a {
+      color: #0f0 !important;
+    }
+    .tabs .tab a:hover {
+      color: #00ffff !important;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    .tabs .tab a.active {
+      color: #0f0 !important;
+      text-shadow: 0 0 10px #0f0;
+    }
+    .tabs .indicator {
+      background-color: #00ffff !important;
+      height: 3px;
     }
 
     audio {
@@ -75,6 +90,18 @@
     </div>
   </nav>
 
+  <!-- Tabs -->
+  <div class="container">
+    <ul id="tabs-demo" class="tabs">
+      <li class="tab col s3"><a href="#test1">Tab 1</a></li>
+      <li class="tab col s3"><a href="#test2">Tab 2</a></li>
+      <li class="tab col s3"><a href="#test3">Tab 3</a></li>
+    </ul>
+    <div id="test1" class="col s12"><p>Contenido del Tab 1</p></div>
+    <div id="test2" class="col s12"><p>Contenido del Tab 2</p></div>
+    <div id="test3" class="col s12"><p>Contenido del Tab 3</p></div>
+  </div>
+
   <!-- Contenido principal -->
   <main class="container center-align">
     <h3 id="title">Bienvenido a FAES</h3>
@@ -85,7 +112,7 @@
     </audio>
   </main>
 
-  <!-- Footer siempre abajo -->
+  <!-- Footer -->
   <footer class="page-footer">
     <div class="container center-align">
       <p>© 2026 Francisco — Proyecto bajo Licencia MIT.</p>
@@ -94,6 +121,12 @@
 
   <!-- Materialize JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var elems = document.querySelectorAll('.tabs');
+      var instances = M.Tabs.init(elems);
+    });
+  </script>
 
   <!-- Firebase con ES Modules -->
   <script type="module">
