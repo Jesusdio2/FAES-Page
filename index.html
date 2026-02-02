@@ -11,43 +11,57 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <!-- Estilo personalizado -->
   <style>
+    /* Paleta global verde neón */
+    :root {
+      --primary-color: #00ff00;       /* verde neón */
+      --primary-color-light: #00ffff; /* cyan */
+      --primary-color-dark: #0f0;     /* verde intenso */
+    }
+
     body {
       background-color: #111; /* gris oscuro */
-      color: #0f0; /* texto verde neón */
+      color: var(--primary-color); 
       font-family: monospace;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color);
     }
+
     main {
       flex: 1;
       padding: 20px;
     }
+
     nav, footer {
-      background-color: #2e2e2e; /* gris oscuro */
-      border: 2px solid #0f0; /* contorno verde */
-      text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+      background-color: #2e2e2e;
+      border: 2px solid var(--primary-color);
     }
+
     nav a, footer p {
-      color: #0f0 !important;
+      color: var(--primary-color) !important;
     }
+
     nav a:hover {
-      color: #00ffff !important; /* relleno cyan */
-      text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+      color: var(--primary-color-light) !important;
+      text-shadow: 0 0 10px var(--primary-color-light), 0 0 20px var(--primary-color-light);
     }
-    .btn-neon {
-      background-color: #00ffff !important; /* relleno cyan */
-      border: 2px solid #0f0; /* contorno verde */
-      color: #111 !important; /* texto oscuro */
-      text-shadow: 0 0 5px #0f0;
-    }
-    .btn-neon:hover {
-      background-color: #0f0 !important; /* verde neón al hover */
+
+    .btn, .btn-large, .btn-small {
+      background-color: var(--primary-color-light) !important;
+      border: 2px solid var(--primary-color-dark) !important;
       color: #111 !important;
-      text-shadow: 0 0 10px #00ffff;
+      text-shadow: 0 0 5px var(--primary-color);
     }
+
+    .btn:hover {
+      background-color: var(--primary-color) !important;
+      color: #111 !important;
+      text-shadow: 0 0 10px var(--primary-color-light);
+    }
+
     audio {
-      border: 2px solid #0f0;
+      border: 2px solid var(--primary-color);
       background-color: #2e2e2e;
       border-radius: 8px;
       padding: 5px;
@@ -63,8 +77,8 @@
       <ul class="right">
         <li><a href="https://www.youtube.com/@FAESWSPVZ191" target="_blank">YouTube</a></li>
         <li><a href="https://x.com/FAESWSPVZ191" target="_blank">X</a></li>
-        <li><a href="#!" id="loginBtn" class="btn btn-neon">Login</a></li>
-        <li><a href="#!" id="logoutBtn" class="btn btn-neon">Logout</a></li>
+        <li><a href="#!" id="loginBtn" class="btn">Login</a></li>
+        <li><a href="#!" id="logoutBtn" class="btn">Logout</a></li>
       </ul>
     </div>
   </nav>
@@ -96,7 +110,7 @@
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } 
     from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-    // Configuración de tu proyecto Firebase
+    // Configuración Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAOmXcJaujzmMwmHDIbCOUzTh-dlFQKdIA",
       authDomain: "faes-page.firebaseapp.com",
@@ -107,7 +121,6 @@
       measurementId: "G-PVR2V1FQ33"
     };
 
-    // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const auth = getAuth(app);
