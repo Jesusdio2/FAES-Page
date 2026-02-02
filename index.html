@@ -9,9 +9,8 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
   <!-- Íconos de Google -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <!-- Estilo personalizado -->
+  <!-- Sobrescribir paleta global -->
   <style>
-    /* Paleta global verde neón */
     :root {
       --primary-color: #00ff00;       /* verde neón */
       --primary-color-light: #00ffff; /* cyan */
@@ -19,8 +18,8 @@
     }
 
     body {
-      background-color: #111; /* gris oscuro */
-      color: var(--primary-color); 
+      background-color: #111;
+      color: var(--primary-color);
       font-family: monospace;
       display: flex;
       flex-direction: column;
@@ -28,26 +27,21 @@
       text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color);
     }
 
-    main {
-      flex: 1;
-      padding: 20px;
-    }
+    main { flex: 1; padding: 20px; }
 
     nav, footer {
       background-color: #2e2e2e;
       border: 2px solid var(--primary-color);
     }
 
-    nav a, footer p {
-      color: var(--primary-color) !important;
-    }
+    nav a, footer p { color: var(--primary-color) !important; }
 
     nav a:hover {
       color: var(--primary-color-light) !important;
       text-shadow: 0 0 10px var(--primary-color-light), 0 0 20px var(--primary-color-light);
     }
 
-    .btn, .btn-large, .btn-small {
+    .btn {
       background-color: var(--primary-color-light) !important;
       border: 2px solid var(--primary-color-dark) !important;
       color: #111 !important;
@@ -110,7 +104,6 @@
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } 
     from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-    // Configuración Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAOmXcJaujzmMwmHDIbCOUzTh-dlFQKdIA",
       authDomain: "faes-page.firebaseapp.com",
@@ -130,7 +123,6 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const userInfo = document.getElementById("userInfo");
 
-    // Iniciar sesión
     loginBtn.addEventListener("click", async () => {
       try {
         const result = await signInWithPopup(auth, provider);
@@ -142,13 +134,11 @@
       }
     });
 
-    // Cerrar sesión
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
       userInfo.textContent = "Sesión cerrada.";
     });
 
-    // Detectar cambios de sesión
     onAuthStateChanged(auth, (user) => {
       if (user) {
         const firstName = user.displayName ? user.displayName.split(" ")[0] : "";
