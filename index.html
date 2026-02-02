@@ -8,27 +8,29 @@
   <meta name="google-site-verification" content="r54yzy4u2dwtvikmswbGXBFNxWjNn1n05VTyVe1vjp8" />
   <title>FAES</title>
   <link rel="icon" href="res/icon.png">
-  <!-- Importar Materialize CSS -->
+  <!-- Materialize CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
-  <!-- Importar íconos de Google -->
+  <!-- Íconos de Google -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Tu estilo retro -->
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="grey darken-4 white-text">
+<body>
 
   <!-- Barra de navegación -->
   <header>
-    <nav class="nav-wrapper teal">
-      <div class="container">
+    <nav class="menu-container">
+      <div class="nav-wrapper">
         <a href="#!" class="brand-logo">FAES</a>
-        <ul class="right">
-          <li><a href="https://www.youtube.com/@FAESWSPVZ191" target="_blank"><i class="material-icons">ondemand_video</i></a></li>
-          <li><a href="https://x.com/FAESWSPVZ191" target="_blank"><i class="material-icons">chat</i></a></li>
-          <li>
-            <a href="#!" id="loginIcon"><i class="material-icons">account_circle</i></a>
-            <ul id="dropdownMenu" class="dropdown-content">
-              <li><a href="#!" id="loginBtn"></a></li>
-              <li><a href="#!" id="logoutBtn"></a></li>
-            </ul>
+        <ul class="menu-row right">
+          <li><a href="https://www.youtube.com/@FAESWSPVZ191" target="_blank">YouTube</a></li>
+          <li><a href="https://x.com/FAESWSPVZ191" target="_blank">X</a></li>
+          <li class="menu-row-right">
+            <img id="loginIcon" src="res/profile.png" alt="Login" class="login-icon">
+            <div id="dropdownMenu" class="dropdown">
+              <button id="loginBtn"></button>
+              <button id="logoutBtn"></button>
+            </div>
           </li>
         </ul>
       </div>
@@ -36,34 +38,36 @@
   </header>
 
   <!-- Contenido principal -->
-  <main class="container center-align">
-    <h3 id="title"></h3>
+  <main>
+    <h1 id="title"></h1>
     <p id="userInfo"></p>
 
     <!-- Reproductor de sonido -->
-    <div class="section">
-      <audio controls class="responsive-audio">
+    <section>
+      <audio controls>
         <source src="https://raw.githubusercontent.com/Jesusdio2/CultraOS/main/initramfs/usr/share/sounds/pixiedust.wav" type="audio/wav">
         Tu navegador / Your browser does not support WAV audio.
       </audio>
-    </div>
+    </section>
   </main>
 
-  <!-- Pie de página -->
-  <footer class="page-footer teal">
+  <!-- Footer siempre abajo -->
+  <footer class="page-footer menu-container">
     <div class="container center-align">
       <p id="footer"></p>
     </div>
   </footer>
 
-  <!-- Firebase con ES Modules -->
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <!-- Firebase + traducciones -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } 
     from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-    // Configuración Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAOmXcJaujzmMwmHDIbCOUzTh-dlFQKdIA",
       authDomain: "faes-page.firebaseapp.com",
@@ -79,7 +83,6 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    // Traducciones
     const translations = {
       es: {
         title: "Bienvenido a FAES",
@@ -101,12 +104,10 @@
       }
     };
 
-    // Detectar idioma
     const userLang = navigator.language || navigator.userLanguage;
     const lang = userLang.startsWith("es") ? "es" : "en";
     const t = translations[lang];
 
-    // Aplicar traducciones
     document.getElementById("title").textContent = t.title;
     document.getElementById("loginBtn").textContent = t.login;
     document.getElementById("logoutBtn").textContent = t.logout;
@@ -118,40 +119,40 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const userInfo = document.getElementById("userInfo");
 
-    // Iniciar sesión
+    loginIcon.addEventListener("click", () => {
+      dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
+    });
+
     loginBtn.addEventListener("click", async () => {
       try {
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
         const firstName = user.displayName ? user.displayName.split(" ")[0] : "";
         userInfo.textContent = `${lang === "es" ? "Hola" : "Hello"}, ${firstName}`;
-        loginIcon.innerHTML = `<img src="${user.photoURL || "res/profile.png"}" class="circle responsive-img" style="width:40px;height:40px;">`;
+        loginIcon.src = user.photoURL || "res/profile.png";
+        dropdownMenu.style.display = "none";
       } catch (error) {
         console.error(error);
       }
     });
 
-    // Cerrar sesión
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
       userInfo.textContent = t.closed;
-      loginIcon.innerHTML = `<i class="material-icons">account_circle</i>`;
+      loginIcon.src = "res/profile.png";
+      dropdownMenu.style.display = "none";
     });
 
-    // Detectar cambios de sesión
     onAuthStateChanged(auth, (user) => {
       if (user) {
         const firstName = user.displayName ? user.displayName.split(" ")[0] : "";
         userInfo.textContent = `${t.connected}: ${firstName}`;
-        loginIcon.innerHTML = `<img src="${user.photoURL || "res/profile.png"}" class="circle responsive-img" style="width:40px;height:40px;">`;
+        loginIcon.src = user.photoURL || "res/profile.png";
       } else {
         userInfo.textContent = t.noSession;
-        loginIcon.innerHTML = `<i class="material-icons">account_circle</i>`;
+        loginIcon.src = "res/profile.png";
       }
     });
   </script>
-
-  <!-- Importar Materialize JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
 </html>
