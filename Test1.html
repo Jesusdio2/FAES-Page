@@ -5,6 +5,81 @@
 	<meta name="viewport" content="width=728, initial-scale=1.0" />
 	<title>Ad Top – Google GPT (Mock)</title>
 
+	<!-- ================== DATA LAYER ================== -->
+	<script>
+		window.dataLayer = [{
+			"site":"XTK",
+			"siteSection":"postpage",
+			"vertical":"Technology",
+			"amp":"no",
+			"postId":194133,
+			"postUrl":"https://www.xataka.com/especiales/maquinas-virtuales-que-son-como-funcionan-y-como-utilizarlas",
+			"publishedDate":"2016-07-25",
+			"modifiedDate":"2020-01-31T13:23",
+			"categories":["especiales"],
+			"tags":["sistema-operativo","virtualizacion"],
+			"videoContent":false,
+			"partner":false,
+			"blockLength":41,
+			"author":"iván ramírez",
+			"postType":"normal",
+			"linksToEcommerce":"none",
+			"ecomPostExpiration":"everlasting",
+			"mainCategory":"especiales",
+			"postExpiration":null,
+			"wordCount":2641
+		}];
+
+		/* Simulación país (en producción lo inyecta backend) */
+		var country = "MX";
+		window.dataLayer[0].visitor_country = country;
+	</script>
+
+	<!-- ================== GTAG ================== -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-L3X96ZX03D"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		window.WSL2 = window.WSL2 || {};
+
+		window.WSL2.pageViewParams = {
+			"site":"XTK",
+			"site_section":"postpage",
+			"vertical":"Technology",
+			"amp":"no",
+			"visitor_country":"MX",
+			"content_id":194133,
+			"post_url":"https://www.xataka.com/especiales/maquinas-virtuales-que-son-como-funcionan-y-como-utilizarlas",
+			"content_publication_date":"2016-07-25",
+			"modified_date":"2020-01-31T13:23",
+			"page_category":"especiales",
+			"content_tags":"sistema-operativo,virtualizacion",
+			"has_video_content":false,
+			"global_branded":false,
+			"block_length":41,
+			"content_author_id":"iván ramírez",
+			"post_type":"normal",
+			"links_to_ecommerce":"none",
+			"ecompost_expiration":"everlasting",
+			"mainCategory":"especiales",
+			"post_expiration":null,
+			"word_count":2641
+		};
+
+		function gtag(){ dataLayer.push(arguments); }
+		gtag('js', new Date());
+		gtag('config', 'G-L3X96ZX03D', { send_page_view: false });
+
+		gtag('event', 'page_view', window.WSL2.pageViewParams);
+	</script>
+
+	<!-- ================== WSL2 / DIDOMI ================== -->
+	<script>
+		window.WSL2 = window.WSL2 || {};
+		WSL2.config = WSL2.config || {};
+		WSL2.config.enableDidomiOverlay = 0;
+	</script>
+
+	<!-- ================== ESTILOS ================== -->
 	<style>
 		html, body {
 			margin: 0;
@@ -22,16 +97,17 @@
 			height: 90px;
 			overflow: hidden;
 			position: relative;
-			border: 1px solid #ddd; /* solo para debug visual */
+			border: 1px solid #ddd; /* debug visual */
 		}
 	</style>
 </head>
+
 <body>
 
 <div class="ad ad-top">
 	<div class="ad-box" id="div-gpt-top">
 
-		<div id="google_ads_iframe_container" style="border:0;">
+		<div id="google_ads_iframe_container">
 			<iframe
 				width="728"
 				height="90"
