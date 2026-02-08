@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=728, initial-scale=1.0" />
-	<title>Ad Top – Google GPT (Mock)</title>
+	<title>Ad Top – Google GPT</title>
 
 	<!-- ================== DATA LAYER ================== -->
 	<script>
@@ -27,20 +27,24 @@
 			"ecomPostExpiration":"everlasting",
 			"mainCategory":"especiales",
 			"postExpiration":null,
-			"wordCount":2641
+			"wordCount":2641,
+			"visitor_country":"MX"
 		}];
-
-		/* Simulación país (en producción lo inyecta backend) */
-		var country = "MX";
-		window.dataLayer[0].visitor_country = country;
 	</script>
 
-	<!-- ================== GTAG ================== -->
+	<!-- ================== GA4 ================== -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=G-L3X96ZX03D"></script>
 	<script>
 		window.dataLayer = window.dataLayer || [];
-		window.WSL2 = window.WSL2 || {};
+		function gtag(){ dataLayer.push(arguments); }
+		gtag('js', new Date());
+		gtag('config', 'G-L3X96ZX03D', { send_page_view: false });
+		gtag('event', 'page_view', window.dataLayer[0]);
+	</script>
 
+	<!-- ================== WSL2 CONFIG ================== -->
+	<script>
+		window.WSL2 = window.WSL2 || {};
 		window.WSL2.pageViewParams = {
 			"site":"XTK",
 			"site_section":"postpage",
@@ -65,21 +69,11 @@
 			"word_count":2641
 		};
 
-		function gtag(){ dataLayer.push(arguments); }
-		gtag('js', new Date());
-		gtag('config', 'G-L3X96ZX03D', { send_page_view: false });
-
-		gtag('event', 'page_view', window.WSL2.pageViewParams);
-	</script>
-
-	<!-- ================== WSL2 / DIDOMI ================== -->
-	<script>
-		window.WSL2 = window.WSL2 || {};
 		WSL2.config = WSL2.config || {};
 		WSL2.config.enableDidomiOverlay = 0;
 	</script>
 
-	<!-- ================== ESTILOS ================== -->
+	<!-- ================== STYLES ================== -->
 	<style>
 		html, body {
 			margin: 0;
@@ -89,7 +83,7 @@
 
 		.ad.ad-top {
 			width: 728px;
-			margin: 20px auto;
+			margin: 0 auto;
 		}
 
 		.ad-box {
@@ -97,29 +91,61 @@
 			height: 90px;
 			overflow: hidden;
 			position: relative;
-			border: 1px solid #ddd; /* debug visual */
 		}
 	</style>
 </head>
 
 <body>
 
-<div class="ad ad-top">
-	<div class="ad-box" id="div-gpt-top">
-
-		<div id="google_ads_iframe_container">
+	<div class="ad ad-top">
+		<div class="ad-box" id="div-gpt-top">
 			<iframe
 				width="728"
 				height="90"
 				frameborder="0"
 				scrolling="no"
-				aria-label="Anuncio"
-				srcdoc="<!DOCTYPE html><html lang='es'><head><meta charset='utf-8'><style>body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(90deg,#0f2027,#203a43,#2c5364);color:#fff}.banner{width:728px;height:90px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-sizing:border-box}.left strong{font-size:16px}.left span{font-size:13px;opacity:.9}.cta{background:#ffcc00;color:#000;padding:10px 16px;font-weight:bold;border-radius:4px;font-size:14px}</style></head><body><div class='banner'><div class='left'><strong>Publicidad</strong><br><span>Oferta especial hoy</span></div><div class='cta'>Ver más</div></div></body></html>">
-			</iframe>
+				srcdoc='
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	body {
+		margin: 0;
+		font-family: Arial, sans-serif;
+		background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+		color: white;
+	}
+	.banner {
+		width: 728px;
+		height: 90px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 20px;
+		box-sizing: border-box;
+	}
+	.cta {
+		background: #ffcc00;
+		color: #000;
+		padding: 10px 16px;
+		font-weight: bold;
+		border-radius: 4px;
+	}
+</style>
+</head>
+<body>
+	<div class="banner">
+		<div>
+			<strong>Publicidad</strong><br>
+			Oferta especial hoy
 		</div>
-
+		<div class="cta">Ver más</div>
 	</div>
-</div>
+</body>
+</html>'
+			></iframe>
+		</div>
+	</div>
 
 </body>
 </html>
