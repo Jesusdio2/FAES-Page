@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=728, initial-scale=1.0" />
-	<title>Ad Top – Google GPT</title>
+	<title>Ad Top – Google GPT (Mock)</title>
 
 	<style>
 		html, body {
@@ -14,7 +14,7 @@
 
 		.ad.ad-top {
 			width: 728px;
-			margin: 0 auto;
+			margin: 20px auto;
 		}
 
 		.ad-box {
@@ -22,62 +22,26 @@
 			height: 90px;
 			overflow: hidden;
 			position: relative;
-		}
-
-		/* Si algún día renderizas el creativo directo */
-		.stage {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 728px;
-			height: 90px;
-			overflow: hidden;
-			cursor: pointer;
+			border: 1px solid #ddd; /* solo para debug visual */
 		}
 	</style>
 </head>
 <body>
 
 <div class="ad ad-top">
-	<div
-		class="ad-box"
-		id="div-gpt-top"
-		data-google-query-id="CIr6_vnLyJIDFYmTOgUdD-UUVA"
-	>
-		<div
-			id="google_ads_iframe_/1018282/xataka/postpage_10__container__"
-			style="border: 0pt none;"
-		>
+	<div class="ad-box" id="div-gpt-top">
+
+		<div id="google_ads_iframe_container" style="border:0;">
 			<iframe
-				id="google_ads_iframe_/1018282/xataka/postpage_10"
-				name="google_ads_iframe_/1018282/xataka/postpage_10"
-				title="Contenido de anuncios de terceros"
 				width="728"
 				height="90"
-				scrolling="no"
-				marginwidth="0"
-				marginheight="0"
 				frameborder="0"
+				scrolling="no"
 				aria-label="Anuncio"
-				tabindex="0"
-				allow="private-state-token-redemption; attribution-reporting"
-				data-load-complete="true"
-				data-google-container-id="4"
-				style="border: 0px; vertical-align: bottom;"
-			>
-				<!-- Google inyecta aquí el creative real -->
-				<div style="
-					position: absolute;
-					width: 0;
-					height: 0;
-					overflow: hidden;
-				">
-					<button></button>
-					<a href="https://yahoo.com"></a>
-					<input />
-				</div>
+				srcdoc="<!DOCTYPE html><html lang='es'><head><meta charset='utf-8'><style>body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(90deg,#0f2027,#203a43,#2c5364);color:#fff}.banner{width:728px;height:90px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-sizing:border-box}.left strong{font-size:16px}.left span{font-size:13px;opacity:.9}.cta{background:#ffcc00;color:#000;padding:10px 16px;font-weight:bold;border-radius:4px;font-size:14px}</style></head><body><div class='banner'><div class='left'><strong>Publicidad</strong><br><span>Oferta especial hoy</span></div><div class='cta'>Ver más</div></div></body></html>">
 			</iframe>
 		</div>
+
 	</div>
 </div>
 
